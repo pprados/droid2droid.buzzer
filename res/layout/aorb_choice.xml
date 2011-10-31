@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  style="@style/backgroundColor">
+  
+  <LinearLayout
+  		android:orientation="vertical"
+  		android:layout_width="fill_parent"
+  		android:layout_height="wrap_content"
+  		android:gravity="center"
+  		android:layout_marginBottom="2dp">
+  	<TextView
+  		android:layout_width="wrap_content"
+  		android:layout_height="wrap_content"
+  		android:paddingBottom="5dp"
+  		android:textStyle="bold"
+  		android:text="Time progression"
+  		style="@style/textColor"/>
+  	<ProgressBar
+  		android:id="@+id/timeBar"
+  		android:layout_width="fill_parent"
+  		android:layout_height="wrap_content"
+  		android:paddingBottom="5dp"
+  		android:paddingLeft="5dp"
+  		android:paddingRight="5dp"
+  		style="@android:style/Widget.ProgressBar.Horizontal" />
+  </LinearLayout>
+  <LinearLayout
+  		android:orientation="vertical"
+  		android:layout_width="fill_parent"
+  		android:layout_height="fill_parent"
+  		android:gravity="center">
+  		<Button
+  			android:id="@+id/button_a"  
+  			style="@style/buttonStyle2" 
+  			android:text="A"
+  			android:textSize="100dp"
+  			android:textStyle="bold"/>
+  		<Button
+  			android:id="@+id/button_b" 
+  			style="@style/buttonStyle2" 
+  			android:text="B"
+  			android:textSize="100dp"
+  			android:textStyle="bold"/>
+  </LinearLayout>
+</LinearLayout>

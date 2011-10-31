@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, SelectActivity!</string>
+    <string name="app_name">Buzzer Application</string>
+    <string name="active_connection">Nombre de connections actives : </string>
+     <string-array name="choice_array">
+        <item>Yes or No</item>
+        <item>A or B</item>
+        <item>A or B or C</item>
+        <item>A or B or C or D</item>
+        <item>Multichoice A, B and C</item>
+        <item>Multichoice A, B, C and D</item>
+    </string-array>
+</resources>

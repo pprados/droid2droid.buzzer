@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	style="@style/backgroundColor" android:orientation="vertical">
+	<LinearLayout android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:orientation="horizontal">
+		<TextView android:layout_width="wrap_content"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:paddingBottom="0dp"
+			android:text="Number of votes : " 
+			style="@style/result" />
+		<TextView android:id="@+id/number_vote" 
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:layout_marginTop="0dp" 
+			android:paddingBottom="0dp"
+			android:text="" 
+			style="@style/result" />
+	</LinearLayout>
+	
+	<LinearLayout android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		android:orientation="horizontal"
+		android:gravity="center">
+		<TextView android:layout_width="wrap_content"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:layout_marginTop="0dp" 
+			android:paddingBottom="0dp"
+			android:text="Votes remaining : " 
+			style="@style/result" />
+		<TextView android:id="@+id/vote_remain" 
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:layout_marginTop="0dp" 
+			android:paddingBottom="0dp"
+			android:text="" 
+			style="@style/result" />
+	</LinearLayout>
+	
+	<LinearLayout android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		android:orientation="horizontal"
+		android:gravity="center">
+		<TextView android:layout_width="wrap_content"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:layout_marginTop="0dp" 
+			android:paddingBottom="5dp"
+			android:textStyle="bold" 
+			android:text="Votes null : " 
+			style="@style/result" />
+		<TextView android:id="@+id/vote_null" 
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:layout_marginTop="0dp" 
+			android:paddingBottom="5dp"
+			android:text="0" 
+			style="@style/result" />
+	</LinearLayout>
+	
+	<LinearLayout android:layout_width="fill_parent"
+		android:layout_height="fill_parent" 
+		android:orientation="vertical"
+		android:gravity="center">
+		
+		<LinearLayout android:layout_width="fill_parent"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:orientation="horizontal" 
+			android:gravity="center">
+			<TextView 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="A       "
+				style="@style/result_item" 
+				/>
+			<TextView 
+				android:id="@+id/a_value"
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content"
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0"
+				style="@style/result_item" />
+				
+			<TextView 
+				android:id="@+id/a_percent"
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content"
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0%"
+				style="@style/result_item" />
+		</LinearLayout>
+		
+		<LinearLayout android:layout_width="fill_parent"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:orientation="horizontal" 
+			android:gravity="center">
+			<TextView android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text=""
+				style="@style/result_item" />
+			<TextView 
+				android:id="@+id/b_value" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0"
+				style="@style/result_item" />
+				
+			<TextView android:id="@+id/b_percent" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0%"
+				style="@style/result_item" />
+		</LinearLayout>
+		
+		<LinearLayout android:layout_width="fill_parent"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:orientation="horizontal" 
+			android:gravity="center">
+			<TextView 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="AandC"
+				style="@style/result_item" />
+				
+			<TextView 
+				android:id="@+id/c_value" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0"
+				style="@style/result_item" />
+				
+			<TextView 
+				android:id="@+id/c_percent" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0%"
+				style="@style/result_item" />
+		</LinearLayout>
+		
+		<LinearLayout android:layout_width="fill_parent"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:orientation="horizontal" 
+			android:gravity="center">
+			<TextView 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:text="A, B  C"
+				style="@style/result_item" />
+			<TextView 
+				android:id="@+id/c_value" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0"
+				style="@style/result_item" />
+			<TextView 
+				android:id="@+id/c_percent" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0%"
+				style="@style/result_item" />
+		</LinearLayout>
+		<LinearLayout android:layout_width="fill_parent"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:orientation="horizontal" 
+			android:gravity="center">
+			<TextView 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="C"
+				style="@style/result_item" />
+			<TextView 
+				android:id="@+id/c_value" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0"
+				style="@style/result_item" />
+			<TextView android:id="@+id/c_percent" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0%"
+				style="@style/result_item" />
+		</LinearLayout>
+		
+		<LinearLayout android:layout_width="fill_parent"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:orientation="horizontal" 
+			android:gravity="center">
+			<TextView android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="C"
+				style="@style/result_item" />
+			<TextView android:id="@+id/c_value" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0"
+				style="@style/result_item" />
+			<TextView android:id="@+id/c_percent" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0%"
+				style="@style/result_item" />
+		</LinearLayout>
+		
+		<LinearLayout android:layout_width="fill_parent"
+			android:layout_height="wrap_content" 
+			android:layout_weight="1"
+			android:orientation="horizontal" 
+			android:gravity="center">
+			<TextView android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="C"
+				style="@style/result_item" />
+			<TextView android:id="@+id/c_value" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0"
+				style="@style/result_item" />
+			<TextView android:id="@+id/c_percent" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" 
+				android:layout_weight="1" 
+				android:layout_marginTop="5dp"
+				android:text="0%"
+				style="@style/result_item" />
+		</LinearLayout>
+	</LinearLayout>
+</LinearLayout>

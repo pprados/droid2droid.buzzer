@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  style="@style/backgroundColor"
+  android:id="@+id/main">
+ 
+ <RelativeLayout
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:layout_marginBottom="2dp">
+	<TextView
+		android:id="@+id/timeProg"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:paddingBottom="5dp"
+		android:textStyle="bold"
+		android:text="Time progression"
+		style="@style/textColor"
+		android:layout_alignParentLeft="true"/>
+  	<ProgressBar
+  		android:id="@+id/timeBar"
+  		android:layout_width="fill_parent"
+  		android:layout_height="wrap_content"
+  		android:paddingBottom="5dp"
+  		android:paddingLeft="5dp"
+  		style="@android:style/Widget.ProgressBar.Horizontal"
+  		android:layout_below="@id/timeProg" />
+  </RelativeLayout>
+ <RelativeLayout 
+ 	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:layout_marginBottom="2dp">
+	<Button 
+   		android:id="@+id/go_back"
+   		android:layout_height="wrap_content"
+   		android:layout_width="wrap_content"
+   		android:text="Go Back"
+   		android:layout_alignParentRight="true"
+   		android:gravity="center_vertical"/>
+	<TextView android:id="@+id/vote_number"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:textStyle="bold" 
+		android:text="Number of votes : " 
+		style="@style/textColor"
+		android:layout_alignParentTop="true"
+		android:layout_alignParentLeft="true" />
+	<TextView android:id="@+id/number_vote" 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:layout_marginRight="10dp"
+		android:textStyle="bold" 
+		android:text=" " 
+		style="@style/textColor"
+		android:layout_toLeftOf="@id/go_back"
+		android:layout_alignBaseline="@id/vote_number" />
+ 	<TextView android:id="@+id/remain_vote" 
+ 		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:textStyle="bold" 
+		android:text="Votes remaining : " 
+		style="@style/textColor"
+		android:layout_below="@id/vote_number" />
+	<TextView android:id="@+id/vote_remain" 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:layout_marginRight="10dp"
+		android:textStyle="bold" 
+		android:text=" " 
+		style="@style/textColor"
+		android:layout_toLeftOf="@id/go_back"
+		android:layout_alignBaseline="@id/remain_vote" />
+	<TextView android:id="@+id/null_vote" 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:textStyle="bold" 
+		android:text="Votes null : " 
+		style="@style/textColor"
+		android:layout_below="@id/remain_vote" />
+		
+	<TextView android:id="@+id/vote_null" 
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:layout_marginRight="10dp"
+		android:textStyle="bold" 
+		android:text=" " 
+		style="@style/textColor"
+		android:layout_toLeftOf="@id/go_back"
+		android:layout_alignBaseline="@id/null_vote" />
+ </RelativeLayout>
+</LinearLayout>

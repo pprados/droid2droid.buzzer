@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  style="@style/backgroundColor">
+  
+  <LinearLayout
+  		android:orientation="vertical"
+  		android:layout_width="fill_parent"
+  		android:layout_height="wrap_content"
+  		android:gravity="center"
+  		android:layout_marginBottom="2dp">
+  	<TextView
+  		android:layout_width="wrap_content"
+  		android:layout_height="wrap_content"
+  		android:paddingBottom="5dp"
+  		android:textStyle="bold"
+  		android:text="Time progression"
+  		style="@style/textColor"/>
+  	<ProgressBar
+  		android:id="@+id/timeBar"
+  		android:layout_width="fill_parent"
+  		android:layout_height="wrap_content"
+  		android:paddingBottom="5dp"
+  		android:paddingLeft="5dp"
+  		android:paddingRight="5dp"
+  		style="@android:style/Widget.ProgressBar.Horizontal" />
+  </LinearLayout>
+  <LinearLayout
+  		android:orientation="vertical"
+  		android:layout_width="fill_parent"
+  		android:layout_height="fill_parent"
+  		android:gravity="center"
+  		android:layout_weight="1">
+	  <LinearLayout
+	  		android:orientation="horizontal"
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="fill_parent"
+	  		android:gravity="center"
+	  		android:layout_weight="1">
+	  		<CheckBox
+	  			android:id="@+id/checkbox_a"  
+	  			style="@style/checkBoxStyle1" 
+	  			android:text="A"
+	  			android:textSize="50dp"
+	  			android:textStyle="bold"/>
+	  		<CheckBox
+	  			android:id="@+id/checkbox_b" 
+	  			style="@style/checkBoxStyle2" 
+	  			android:text="B"
+	  			android:textSize="50dp"
+	  			android:textStyle="bold"/>
+	  </LinearLayout>
+	  <LinearLayout
+	  		android:orientation="horizontal"
+	  		android:layout_width="fill_parent"
+	  		android:layout_height="fill_parent"
+	  		android:gravity="center"
+	  		android:layout_weight="1">
+	  		<CheckBox 
+	  			android:id="@+id/checkbox_c" 
+	  			style="@style/checkBoxStyle1" 
+	  			android:text="C"
+	  			android:textSize="50dp"
+	  			android:textStyle="bold"/>
+	  		<CheckBox
+	  			android:id="@+id/checkbox_d" 
+	  			style="@style/checkBoxStyle2" 
+	  			android:text="D"
+	  			android:textSize="50dp"
+	  			android:textStyle="bold"/>
+	  </LinearLayout>
+</LinearLayout>
+  <LinearLayout
+  		android:orientation="vertical"
+  		android:layout_width="fill_parent"
+  		android:layout_height="fill_parent"
+  		android:layout_weight="4">
+  		<Button
+  			android:id="@+id/submit" 
+  			style="@style/buttonStyle2" 
+  			android:text="Submit"
+  			android:textSize="20dp"
+  			android:textStyle="bold"
+  			android:gravity="center"/>
+  
+  </LinearLayout>
+</LinearLayout>

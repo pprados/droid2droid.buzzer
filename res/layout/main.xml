@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    style="@style/backgroundColor">
+	<TextView  
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content" 
+	    android:text="Make Your Choice"
+	    android:textSize="18dp"
+	    android:textStyle="bold"
+	    android:gravity="center"
+	    style="@style/textColor"
+	    android:paddingBottom="5dp"/>
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center"
+		android:paddingBottom="5dp">
+			<TextView
+				android:layout_width="wrap_content" 
+			    android:layout_height="wrap_content" 
+			    android:paddingRight="5dp"
+			    android:text="Select time"
+			    android:textSize="13dp"
+			    android:textStyle="bold"
+			    style="@style/textColor"/>
+			<EditText
+				android:id="@+id/editText"
+				android:layout_width="wrap_content" 
+			    android:layout_height="wrap_content"
+			    android:paddingLeft="5dp"
+			    android:paddingRight="5dp"
+			    android:text="30"
+			    android:maxLength="2"
+			    android:numeric="integer"/>
+			<TextView
+				android:layout_width="wrap_content" 
+			    android:layout_height="wrap_content" 
+			    android:paddingLeft="5dp"
+			    android:text="secondes"
+			    android:textSize="13dp"
+			    android:textStyle="bold"
+			    style="@style/textColor"/>
+	</LinearLayout>
+	<LinearLayout android:orientation="horizontal"
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		android:gravity="center_vertical|center_horizontal">
+		<TextView android:layout_height="fill_parent"
+			android:layout_width="wrap_content"
+			style="@style/textColor"
+			android:text="@string/active_connection"/>
+		<TextView android:id="@+id/active_connection_number" 
+			android:layout_height="fill_parent"
+			android:layout_width="wrap_content"
+			style="@style/textColor"/>
+	</LinearLayout>
+	<ListView
+		android:id="@android:id/list"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:drawSelectorOnTop="false"
+		android:cacheColorHint="#EFEFEF"/>
+</LinearLayout>

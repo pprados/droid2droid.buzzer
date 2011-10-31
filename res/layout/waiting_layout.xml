@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent">
+
+	<LinearLayout style="@style/backgroundColor"
+		android:orientation="vertical" android:id="@+id/linearLayout1"
+		android:layout_centerVertical="true" android:layout_alignParentRight="true"
+		android:layout_height="match_parent"
+		android:layout_width="match_parent">
+		<TextView android:gravity="center" android:textSize="40dp"
+			android:layout_height="wrap_content" android:textColor="#5A5E6B"
+			android:text="  Buzz Me !" android:layout_width="fill_parent"
+			android:textStyle="bold"></TextView>
+		<ImageView android:id="@+id/image" android:adjustViewBounds="true"
+			android:src="@drawable/buzzer" android:layout_height="206dp" android:layout_width="match_parent"></ImageView>
+		<TextView android:gravity="center" android:textSize="20dp"
+			android:layout_height="wrap_content" android:textColor="#5A5E6B"
+			android:text="Waiting for the request ..." android:layout_width="fill_parent"
+			android:textStyle="bold" android:paddingBottom="70dp"></TextView>
+		<TextView android:gravity="center" android:textSize="15dp"
+			android:layout_height="wrap_content" android:textColor="#5A5E6B"
+			android:text="Press menu to edit preferences or exit"
+			android:layout_width="fill_parent" android:textStyle="bold"
+			android:paddingBottom="15dp"></TextView>
+	</LinearLayout>
+</ScrollView>
