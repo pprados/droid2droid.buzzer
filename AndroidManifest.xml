@@ -1,77 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="org.remoteandroid.apps.buzzer"
-      android:versionCode="1"
-      android:versionName="1.0">
-    <permission android:name="org.remoteandroid.permission.DISCOVER"
-        android:label="@string/permission_discover_label"
+    package="org.remoteandroid.apps.buzzer"
+    android:versionCode="1"
+    android:versionName="1.0" >
+	<uses-sdk android:minSdkVersion="7" android:targetSdkVersion="9"/>
+    <permission
         android:description="@string/permission_discover_desc"
+        android:label="@string/permission_discover_label"
+        android:name="org.remoteandroid.permission.DISCOVER"
         android:protectionLevel="normal" />
-        
-    <!-- For receive discover events -->
-	<uses-permission android:name="org.remoteandroid.permission.discover.RECEIVE"/>  
-      
-	<uses-permission android:name="android.permission.BLUETOOTH"></uses-permission>
-	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
-	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"></uses-permission>
-	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
 
-    <application android:icon="@drawable/icon" android:label="@string/app_name"
-    >
-        <activity android:name=".SelectActivity"
-                  android:label="@string/app_name">
-           <intent-filter>
+    <!-- For receive discover events -->
+    <uses-permission android:name="org.remoteandroid.permission.discover.RECEIVE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    
+
+    <application
+        android:icon="@drawable/icon"
+        android:label="@string/app_name" >
+        <activity
+            android:label="@string/app_name"
+            android:name=".SelectActivity" >
+            <intent-filter >
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity 
-        	android:name=".charts.Chart_YN">
+        <activity android:name=".charts.Chart_YN" >
         </activity>
-        <activity 
-        	android:name=".charts.Chart_AB">
+        <activity android:name=".charts.Chart_AB" >
         </activity>
-        <activity 
-        	android:name=".charts.Chart_ABC">
+        <activity android:name=".charts.Chart_ABC" >
         </activity>
-         <activity 
-        	android:name=".charts.Chart_ABCD">
+        <activity android:name=".charts.Chart_ABCD" >
         </activity>
-         <activity 
-        	android:name=".charts.ChartMulti_ABC">
+        <activity android:name=".charts.ChartMulti_ABC" >
         </activity>
-         <activity 
-        	android:name=".WaitingActivity">
+        <activity android:name=".WaitingActivity" >
         </activity>
-        <activity 
-        	android:name=".choices.Choice_YN">
+        <activity android:name=".choices.Choice_YN" >
         </activity>
-        <activity 
-        	android:name=".choices.Choice_AB">
+        <activity android:name=".choices.Choice_AB" >
         </activity>
-        <activity 
-        	android:name=".choices.Choice_ABC">
+        <activity android:name=".choices.Choice_ABC" >
         </activity>
-		<activity 
-        	android:name=".choices.Choice_ABCD">
+        <activity android:name=".choices.Choice_ABCD" >
         </activity>
-        <activity 
-        	android:name=".choices.ChoiceMulti_ABC">
+        <activity android:name=".choices.ChoiceMulti_ABC" >
         </activity>
-        <activity 
-        	android:name="choices.ChoiceMulti_ABCD">
+        <activity android:name="choices.ChoiceMulti_ABCD" >
         </activity>
-        <service android:name=".remote.RemoteVoteService">
-        	<intent-filter>
-        		<action android:name="org.remoteandroid.apps.buzzer.Vote" />
-        	</intent-filter>
+
+        <service android:name=".remote.RemoteVoteService" >
+            <intent-filter >
+                <action android:name="org.remoteandroid.apps.buzzer.Vote" />
+            </intent-filter>
         </service>
-        <service android:name="MultiConnectionService">
-        	<intent-filter>
-        		<action android:name="org.remoteandroid.apps.buzzer.CONNECT"/>
-        		<action android:name="org.remoteandroid.apps.buzzer.VOTE"/>
-        		<action android:name="org.remoteandroid.apps.buzzer.QUIT"/>
-        	</intent-filter>
+        <service android:name="MultiConnectionService" >
+            <intent-filter >
+                <action android:name="org.remoteandroid.apps.buzzer.CONNECT" />
+                <action android:name="org.remoteandroid.apps.buzzer.VOTE" />
+                <action android:name="org.remoteandroid.apps.buzzer.QUIT" />
+            </intent-filter>
         </service>
     </application>
+
 </manifest>

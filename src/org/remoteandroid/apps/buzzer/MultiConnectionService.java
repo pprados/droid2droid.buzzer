@@ -1,6 +1,9 @@
 package org.remoteandroid.apps.buzzer;
 
 import java.io.IOException;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,43 +27,42 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 import android.widget.Toast;
 
 public class MultiConnectionService extends Service
 {
-	public static final String	TAG				= "AbstractChart";
+	public static final String TAG = "AbstractChart";
 
-	public static final String	ACTION_CONNECT	= "org.remoteandroid.apps.buzzer.CONNECT";
+	public static final String ACTION_CONNECT = "org.remoteandroid.apps.buzzer.CONNECT";
 
-	public static final String	ACTION_VOTE		= "org.remoteandroid.apps.buzzer.VOTE";
+	public static final String ACTION_VOTE = "org.remoteandroid.apps.buzzer.VOTE";
 
-	public static final String	ACTION_QUIT		= "org.remoteandroid.apps.buzzer.QUIT";
+	public static final String ACTION_QUIT = "org.remoteandroid.apps.buzzer.QUIT";
 
-	private enum Mode
-	{
+	private enum Mode {
 		CONNECT, VOTE, WAIT
 	};
 
-	private Mode							mState			= Mode.CONNECT;
+	private Mode mState = Mode.CONNECT;
 
-	private RemoteAndroidManager			mManager;
+	private RemoteAndroidManager mManager;
 
-	public static Map<String, RemoteVote>	mVotes			= Collections
-																	.synchronizedMap(new HashMap<String, RemoteVote>());
+	public static Map<String, RemoteVote> mVotes = Collections.synchronizedMap(new HashMap<String, RemoteVote>());
 
-	private long							mStartTime;
+	private long mStartTime;
 
-	private int								mPosition;
+	private int mPosition;
 
-	private int								mTemps;
+	private int mTemps;
 
-	private AtomicInteger					mWaitingVote	= new AtomicInteger();
+	private AtomicInteger mWaitingVote = new AtomicInteger();
 
 	// List of knowns devices
-	ListRemoteAndroidInfo					mAndroids;
+	ListRemoteAndroidInfo mAndroids;
 
-	Handler									mHandler			= new Handler();
+	Handler mHandler = new Handler();
 
 	@Override
 	public void onCreate()
@@ -73,44 +75,47 @@ public class MultiConnectionService extends Service
 			@Override
 			public void run()
 			{
-				mAndroids = mManager
-						.newDiscoveredAndroid(new ListRemoteAndroidInfo.DiscoverListener()
+				mAndroids = mManager.newDiscoveredAndroid(new ListRemoteAndroidInfo.DiscoverListener()
+				{
+					@Override
+					public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
+					{
+						if (remoteAndroidInfo.getUris().length == 0)
+							return;
+						if (replace)
+							return; // TODO Optimise la connexion
+						new Thread(new Runnable()
 						{
 							@Override
-							public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo,
-									boolean replace)
+							public void run()
 							{
-								if (remoteAndroidInfo.getUris().length == 0)
-									return;
-								final String uri = remoteAndroidInfo.getUris()[0];
-
-								if (replace)
-									return; // TODO Optimise la connexion
-								new Thread(new Runnable()
+								for (String uri : remoteAndroidInfo.getUris())
 								{
-									@Override
-									public void run()
+
+									if (connect(remoteAndroidInfo, uri, true))
 									{
-										connect(remoteAndroidInfo, true);
 										if (mState == Mode.VOTE)
 										{
 											mWaitingVote.incrementAndGet();
 											doVote(mVotes.get(uri));
 										}
+										break;
 									}
-								}).start();
+								}
 							}
+						}).start();
+					}
 
-							@Override
-							public void onDiscoverStart()
-							{
-							}
+					@Override
+					public void onDiscoverStart()
+					{
+					}
 
-							@Override
-							public void onDiscoverStop()
-							{
-							}
-						});
+					@Override
+					public void onDiscoverStop()
+					{
+					}
+				});
 				mAndroids.start(RemoteAndroidManager.DISCOVER_BEST_EFFORT);
 			}
 		}).start();
@@ -134,7 +139,8 @@ public class MultiConnectionService extends Service
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
 		String action = intent.getAction();
-		Log.i(TAG, "start command " + action);
+		Log.i(
+			TAG, "start command " + action);
 		if (ACTION_CONNECT.equals(action))
 		{
 			mState = Mode.CONNECT;
@@ -145,19 +151,28 @@ public class MultiConnectionService extends Service
 			{
 				if (mState != Mode.WAIT)
 					// throw new IllegalArgumentException("Current vote");
-					// Signaler que le vote est toujours en cours et attends d'autres participants
-					Toast.makeText(this, "Pending vote. Please wait", Toast.LENGTH_LONG).show();
+					// Signaler que le vote est toujours en cours et attends
+					// d'autres participants
+					Toast.makeText(
+						this, "Pending vote. Please wait", Toast.LENGTH_LONG).show();
 			}
 			mState = Mode.VOTE;
 			mStartTime = System.currentTimeMillis();
-			mTemps = intent.getIntExtra("time", 0);
-			mPosition = intent.getIntExtra("position", -1);
+			mTemps = intent.getIntExtra(
+				"time", 0);
+			mPosition = intent.getIntExtra(
+				"position", -1);
 			mWaitingVote = new AtomicInteger(mVotes.size());
 			// -------------------------------------------
 			Intent intentInfo = new Intent(AbstractChart.CHART_RESULTS);
-			intentInfo.putExtra("max", mVotes.size()) // Le nombre de votant
-					.putExtra("pending", mWaitingVote.get()) // Le nombre de vote en attente
-					.putExtra("time", mTemps).putExtra("startTime", mStartTime);
+			intentInfo.putExtra(
+				"max", mVotes.size()) // Le nombre de votant
+					.putExtra(
+						"pending", mWaitingVote.get()) // Le nombre de vote en
+														// attente
+					.putExtra(
+						"time", mTemps).putExtra(
+						"startTime", mStartTime);
 			sendBroadcast(intentInfo);
 			// ------------------------------------------------
 
@@ -179,33 +194,46 @@ public class MultiConnectionService extends Service
 		{
 			stopSelf();
 		}
-		return 0;//START_REDELIVER_INTENT;
+		return 0;// START_REDELIVER_INTENT;
 	}
 
-	private boolean connect(final RemoteAndroidInfo info, final boolean block)
+	private boolean connect(final RemoteAndroidInfo info, final String uri, final boolean block)
 	{
 		if (info.getUris().length == 0)
 			return false;
-		final String uri = info.getUris()[0];
+		class Result
+		{
+			volatile boolean rc;
+		}
+		final Result result = new Result();
+		
 
-		mManager.bindRemoteAndroid(new Intent(Intent.ACTION_MAIN, Uri.parse(uri)),
-				new ServiceConnection()
+		mManager.bindRemoteAndroid(
+			new Intent(Intent.ACTION_MAIN, Uri.parse(uri)), new ServiceConnection()
+			{
+				@Override
+				public void onServiceDisconnected(ComponentName name)
 				{
-					@Override
-					public void onServiceDisconnected(ComponentName name)
+					mVotes.remove(uri);
+					mAndroids.remove(info);
+					if (block)
 					{
-						mVotes.remove(uri);
-						mAndroids.remove(info);
-					}
-
-					@Override
-					public void onServiceConnected(ComponentName name, IBinder service)
-					{
-						final RemoteAndroid rA = (RemoteAndroid) service;
-
-						try
+						synchronized (MultiConnectionService.this)
 						{
-							rA.pushMe(getApplicationContext(), new PublishListener()
+							MultiConnectionService.this.notify();
+						}
+					}
+				}
+
+				@Override
+				public void onServiceConnected(ComponentName name, IBinder service)
+				{
+					final RemoteAndroid rA = (RemoteAndroid) service;
+
+					try
+					{
+						rA.pushMe(
+							getApplicationContext(), new PublishListener()
 							{
 								@Override
 								public void onProgress(int progress)
@@ -224,47 +252,43 @@ public class MultiConnectionService extends Service
 									// setStatus("Install refused");
 									else if (status >= 0)
 									{
-										rA.bindService(new Intent(
-												"org.remoteandroid.apps.buzzer.Vote"),
-												new ServiceConnection()
+										rA.bindService(
+											new Intent("org.remoteandroid.apps.buzzer.Vote"), new ServiceConnection()
+											{
+												RemoteVote vote;
+
+												@Override
+												public void onServiceDisconnected(ComponentName name)
 												{
-													RemoteVote	vote;
+													vote = null;
+												}
 
-													@Override
-													public void onServiceDisconnected(
-															ComponentName name)
+												@Override
+												public void onServiceConnected(ComponentName name, IBinder service)
+												{
+													vote = RemoteVote.Stub.asInterface(service);
+													mVotes.put(uri, vote);
+													if (block)
 													{
-														vote = null;
-													}
-
-													@Override
-													public void onServiceConnected(
-															ComponentName name, IBinder service)
-													{
-														vote = RemoteVote.Stub.asInterface(service);
-														mVotes.put(uri, vote);
-														if (block)
+														result.rc=true;
+														synchronized (MultiConnectionService.this)
 														{
-															synchronized (MultiConnectionService.this)
-															{
-																MultiConnectionService.this
-																		.notify();
-															}
-														}
-														try
-														{
-															Intent intent = new Intent(
-																	SelectActivity.REGISTER);
-															sendBroadcast(intent);
-															vote.standby();
-															mState = Mode.WAIT;
-														}
-														catch (RemoteException e)
-														{
-															e.printStackTrace();
+															MultiConnectionService.this.notify();
 														}
 													}
-												}, Context.BIND_AUTO_CREATE);
+													try
+													{
+														Intent intent = new Intent(SelectActivity.REGISTER);
+														sendBroadcast(intent);
+														vote.standby();
+														mState = Mode.WAIT;
+													}
+													catch (RemoteException e)
+													{
+														e.printStackTrace();
+													}
+												}
+											}, Context.BIND_AUTO_CREATE);
 									}
 								}
 
@@ -279,18 +303,21 @@ public class MultiConnectionService extends Service
 								{
 									return true;
 								}
-							}, 0 /*(SelectActivity.DEBUG) ? RemoteAndroid.INSTALL_REPLACE_EXISTING : 0*/, 60000);
-						}
-						catch (RemoteException e)
-						{
-							e.printStackTrace();
-						}
-						catch (IOException e)
-						{
-							e.printStackTrace();
-						}
+							}, 0 /*
+								 * (SelectActivity.DEBUG) ?
+								 * RemoteAndroid.INSTALL_REPLACE_EXISTING : 0
+								 */, 60000);
 					}
-				}, 0);
+					catch (RemoteException e)
+					{
+						e.printStackTrace();
+					}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			}, 0);
 		if (block)
 		{
 			synchronized (this)
@@ -298,7 +325,7 @@ public class MultiConnectionService extends Service
 				try
 				{
 					wait();
-					return true;
+					return result.rc;
 				}
 				catch (InterruptedException e)
 				{
@@ -313,12 +340,16 @@ public class MultiConnectionService extends Service
 	{
 		try
 		{
-			int result = vote.vote(mPosition, mStartTime, mTemps);
+			int result = vote.vote(
+				mPosition, mStartTime, mTemps);
 			int pending = mWaitingVote.decrementAndGet();
 			Intent intent = new Intent(AbstractChart.CHART_RESULTS);
-			intent.putExtra("result", result); // Le résultat du vote
-			intent.putExtra("max", mVotes.size()); // Le nombre de votant
-			intent.putExtra("pending", pending); // Le nombre de vote en attente
+			intent.putExtra(
+				"result", result); // Le résultat du vote
+			intent.putExtra(
+				"max", mVotes.size()); // Le nombre de votant
+			intent.putExtra(
+				"pending", pending); // Le nombre de vote en attente
 			if (pending == 0)
 				mState = Mode.CONNECT;
 			sendBroadcast(intent);
@@ -328,10 +359,13 @@ public class MultiConnectionService extends Service
 			e.printStackTrace();
 			mVotes.remove(vote);
 			Intent intent = new Intent(AbstractChart.CHART_RESULTS);
-			intent.putExtra("result", -1); // Le résultat du vote
-			intent.putExtra("max", mVotes.size()); // Le nombre de votant
+			intent.putExtra(
+				"result", -1); // Le résultat du vote
+			intent.putExtra(
+				"max", mVotes.size()); // Le nombre de votant
 			int pending = mWaitingVote.decrementAndGet();
-			intent.putExtra("pending", pending); // Le nombre de vote en attente
+			intent.putExtra(
+				"pending", pending); // Le nombre de vote en attente
 			if (pending == 0)
 				mState = Mode.CONNECT;
 			sendBroadcast(intent);
