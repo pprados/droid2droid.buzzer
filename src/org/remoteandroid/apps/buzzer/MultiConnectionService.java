@@ -229,7 +229,7 @@ public class MultiConnectionService extends Service
 				public void onServiceConnected(ComponentName name, IBinder service)
 				{
 					final RemoteAndroid rA = (RemoteAndroid) service;
-
+					rA.setExecuteTimeout(60*60000L);
 					try
 					{
 						rA.pushMe(
