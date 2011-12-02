@@ -11,4 +11,5 @@
         <item>Multichoice A, B and C</item>
         <item>Multichoice A, B, C and D</item>
     </string-array>
+        <string name="add_device">Add device...</string>
 </resources>

@@ -62,6 +62,7 @@
         </service>
         <service android:name="MultiConnectionService" >
             <intent-filter >
+                <action android:name="org.remoteandroid.apps.buzzer.ADD_DEVICE" />
                 <action android:name="org.remoteandroid.apps.buzzer.CONNECT" />
                 <action android:name="org.remoteandroid.apps.buzzer.VOTE" />
                 <action android:name="org.remoteandroid.apps.buzzer.QUIT" />

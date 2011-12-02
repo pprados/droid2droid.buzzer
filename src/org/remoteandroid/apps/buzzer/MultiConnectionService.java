@@ -37,6 +37,8 @@ public class MultiConnectionService extends Service
 
 	public static final String ACTION_CONNECT = "org.remoteandroid.apps.buzzer.CONNECT";
 
+	public static final String ACTION_ADD_DEVICE = "org.remoteandroid.apps.buzzer.ADD_DEVICE";
+
 	public static final String ACTION_VOTE = "org.remoteandroid.apps.buzzer.VOTE";
 
 	public static final String ACTION_QUIT = "org.remoteandroid.apps.buzzer.QUIT";
@@ -64,6 +66,34 @@ public class MultiConnectionService extends Service
 
 	Handler mHandler = new Handler();
 
+	public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
+	{
+		if (remoteAndroidInfo.getUris().length == 0)
+			return;
+		if (replace)
+			return; // TODO Optimise la connexion
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				for (String uri : remoteAndroidInfo.getUris())
+				{
+
+					if (connect(remoteAndroidInfo, uri, true))
+					{
+						if (mState == Mode.VOTE)
+						{
+							mWaitingVote.incrementAndGet();
+							doVote(mVotes.get(uri));
+						}
+						break;
+					}
+				}
+			}
+		}).start();
+		
+	}
 	@Override
 	public void onCreate()
 	{
@@ -80,30 +110,7 @@ public class MultiConnectionService extends Service
 					@Override
 					public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
 					{
-						if (remoteAndroidInfo.getUris().length == 0)
-							return;
-						if (replace)
-							return; // TODO Optimise la connexion
-						new Thread(new Runnable()
-						{
-							@Override
-							public void run()
-							{
-								for (String uri : remoteAndroidInfo.getUris())
-								{
-
-									if (connect(remoteAndroidInfo, uri, true))
-									{
-										if (mState == Mode.VOTE)
-										{
-											mWaitingVote.incrementAndGet();
-											doVote(mVotes.get(uri));
-										}
-										break;
-									}
-								}
-							}
-						}).start();
+						MultiConnectionService.this.onDiscover(remoteAndroidInfo,replace);
 					}
 
 					@Override
@@ -139,9 +146,14 @@ public class MultiConnectionService extends Service
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
 		String action = intent.getAction();
-		Log.i(
-			TAG, "start command " + action);
-		if (ACTION_CONNECT.equals(action))
+		Log.i(TAG, "start command " + action);
+		if (ACTION_ADD_DEVICE.equals(action))
+		{
+			RemoteAndroidInfo remoteAndroidInfo=(RemoteAndroidInfo)intent.getParcelableExtra(RemoteAndroidManager.EXTRA_DISCOVER);
+			boolean replace=intent.getBooleanExtra(RemoteAndroidManager.EXTRA_UPDATE,false);
+			onDiscover(remoteAndroidInfo, replace);
+		}
+		else if (ACTION_CONNECT.equals(action))
 		{
 			mState = Mode.CONNECT;
 		}

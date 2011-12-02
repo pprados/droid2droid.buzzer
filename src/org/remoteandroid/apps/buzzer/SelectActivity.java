@@ -1,5 +1,6 @@
 package org.remoteandroid.apps.buzzer;
 
+import org.remoteandroid.RemoteAndroidInfo;
 import org.remoteandroid.RemoteAndroidManager;
 import org.remoteandroid.apps.buzzer.charts.ChartMulti_ABC;
 import org.remoteandroid.apps.buzzer.charts.Chart_AB;
@@ -8,6 +9,7 @@ import org.remoteandroid.apps.buzzer.charts.Chart_ABCD;
 import org.remoteandroid.apps.buzzer.charts.Chart_YN;
 import org.remoteandroid.apps.buzzer.remote.RemoteVote;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
@@ -20,6 +22,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -45,6 +50,8 @@ public class SelectActivity extends ListActivity
 
 	public static final String	REGISTER		= "org.remoteandroid.apps.buzzer.REGISTER";
 
+	private static final int 	REQUEST_CONNECT_CODE=1;
+	
 	private int					mConnectedDevices;
 
 	private static final int	DIALOG_MARKET	= 1;
@@ -151,6 +158,19 @@ public class SelectActivity extends ListActivity
 		});
 	}
 
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		if (requestCode==REQUEST_CONNECT_CODE && resultCode==Activity.RESULT_OK)
+		{
+			RemoteAndroidInfo info=(RemoteAndroidInfo)data.getParcelableExtra(RemoteAndroidManager.EXTRA_DISCOVER);
+			startService(new Intent(MultiConnectionService.ACTION_ADD_DEVICE)
+				.putExtra(RemoteAndroidManager.EXTRA_DISCOVER,info)
+				.putExtra(RemoteAndroidManager.EXTRA_UPDATE, data.getBooleanExtra(RemoteAndroidManager.EXTRA_UPDATE, false)));
+		}
+	}
+	
 	@Override
 	protected void onListItemClick(ListView parent, View view, final int position, long id)
 	{
@@ -202,6 +222,26 @@ public class SelectActivity extends ListActivity
 		super.onDestroy();
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) 
+	{
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.ctx_menu, menu);
+	    return true;
+	}	
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) 
+	{
+	    switch (item.getItemId()) 
+	    {
+		    case R.id.add:
+		    	startActivityForResult(new Intent(RemoteAndroidManager.ACTION_CONNECT_ANDROID), REQUEST_CONNECT_CODE);
+		        return true;
+		    default:
+		        return super.onOptionsItemSelected(item);
+	    }
+	}
 	private BroadcastReceiver	mReceiver	= new BroadcastReceiver()
 											{
 												@Override
