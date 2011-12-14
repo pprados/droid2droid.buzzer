@@ -33,8 +33,13 @@ import android.widget.Toast;
 
 public class MultiConnectionService extends Service
 {
+	public static MultiConnectionService sMe;
 	public static final String TAG = "AbstractChart";
 
+	public static final String ACTION_START_DISCOVER = "org.remoteandroid.apps.buzzer.START_DISCOVER";
+
+	public static final String ACTION_STOP_DISCOVER = "org.remoteandroid.apps.buzzer.STOP_DISCOVER";
+	
 	public static final String ACTION_CONNECT = "org.remoteandroid.apps.buzzer.CONNECT";
 
 	public static final String ACTION_ADD_DEVICE = "org.remoteandroid.apps.buzzer.ADD_DEVICE";
@@ -72,6 +77,12 @@ public class MultiConnectionService extends Service
 			return;
 		if (replace)
 			return; // TODO Optimise la connexion
+		startConnection(remoteAndroidInfo);
+		
+	}
+	private void startConnection(final RemoteAndroidInfo remoteAndroidInfo)
+	{
+		Log.d("Buzzer","start connection with "+remoteAndroidInfo.getName());
 		new Thread(new Runnable()
 		{
 			@Override
@@ -92,48 +103,52 @@ public class MultiConnectionService extends Service
 				}
 			}
 		}).start();
-		
 	}
+
 	@Override
 	public void onCreate()
 	{
 		super.onCreate();
+//		if (sMe!=null) return;
+		Log.d("service","Service onCreate");
+		sMe=this;
 		mManager = RemoteAndroidManager.getManager(this);
-
-		new Thread(new Runnable()
+		mAndroids = mManager.newDiscoveredAndroid(new ListRemoteAndroidInfo.DiscoverListener()
 		{
 			@Override
-			public void run()
+			public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
 			{
-				mAndroids = mManager.newDiscoveredAndroid(new ListRemoteAndroidInfo.DiscoverListener()
-				{
-					@Override
-					public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
-					{
-						MultiConnectionService.this.onDiscover(remoteAndroidInfo,replace);
-					}
-
-					@Override
-					public void onDiscoverStart()
-					{
-					}
-
-					@Override
-					public void onDiscoverStop()
-					{
-					}
-				});
-				mAndroids.start(RemoteAndroidManager.DISCOVER_BEST_EFFORT);
+				MultiConnectionService.this.onDiscover(remoteAndroidInfo,replace);
 			}
-		}).start();
+
+			@Override
+			public void onDiscoverStart()
+			{
+			}
+
+			@Override
+			public void onDiscoverStop()
+			{
+			}
+		});
 	}
 
 	@Override
 	public void onDestroy()
 	{
 		super.onDestroy();
+		Log.d("service","Service onDestroy");
 		if (mAndroids != null)
-			mAndroids.cancel();
+		{
+			try
+			{
+				mAndroids.close();
+			}
+			catch (IOException e)
+			{
+				// Ignore
+			}
+		}
 	}
 
 	@Override
@@ -142,16 +157,33 @@ public class MultiConnectionService extends Service
 		return null;
 	}
 
+	int getSize()
+	{
+		return mAndroids.size();
+	}
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
 		String action = intent.getAction();
 		Log.i(TAG, "start command " + action);
-		if (ACTION_ADD_DEVICE.equals(action))
+		if (ACTION_START_DISCOVER.equals(action))
+		{
+			
+			mAndroids.start(RemoteAndroidManager.DISCOVER_INFINITELY);
+		}
+		else if (ACTION_STOP_DISCOVER.equals(action))
+		{
+			mAndroids.cancel();
+		}
+		else if (ACTION_ADD_DEVICE.equals(action))
 		{
 			RemoteAndroidInfo remoteAndroidInfo=(RemoteAndroidInfo)intent.getParcelableExtra(RemoteAndroidManager.EXTRA_DISCOVER);
 			boolean replace=intent.getBooleanExtra(RemoteAndroidManager.EXTRA_UPDATE,false);
-			onDiscover(remoteAndroidInfo, replace);
+			if (!mAndroids.contains(remoteAndroidInfo))
+			{
+				mAndroids.add(remoteAndroidInfo);
+				startConnection(remoteAndroidInfo);
+			}
 		}
 		else if (ACTION_CONNECT.equals(action))
 		{
@@ -204,6 +236,17 @@ public class MultiConnectionService extends Service
 		}
 		else if (ACTION_QUIT.equals(action))
 		{
+			for (final RemoteVote i:mVotes.values())
+			{
+				try
+				{
+					i.exit();
+				}
+				catch (RemoteException e)
+				{
+					// Ignore
+				}
+			}
 			stopSelf();
 		}
 		return 0;// START_REDELIVER_INTENT;
@@ -290,7 +333,7 @@ public class MultiConnectionService extends Service
 													}
 													try
 													{
-														Intent intent = new Intent(SelectActivity.REGISTER);
+														Intent intent = new Intent(BuzzerActivity.REGISTER);
 														sendBroadcast(intent);
 														vote.standby();
 														mState = Mode.WAIT;
@@ -354,6 +397,7 @@ public class MultiConnectionService extends Service
 		{
 			int result = vote.vote(
 				mPosition, mStartTime, mTemps);
+			vote.standby();
 			int pending = mWaitingVote.decrementAndGet();
 			Intent intent = new Intent(AbstractChart.CHART_RESULTS);
 			intent.putExtra(

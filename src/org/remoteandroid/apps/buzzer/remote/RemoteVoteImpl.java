@@ -1,6 +1,6 @@
 package org.remoteandroid.apps.buzzer.remote;
 
-import org.remoteandroid.apps.buzzer.SelectActivity;
+import org.remoteandroid.apps.buzzer.BuzzerActivity;
 import org.remoteandroid.apps.buzzer.WaitingActivity;
 import org.remoteandroid.apps.buzzer.choices.ChoiceMulti_ABC;
 import org.remoteandroid.apps.buzzer.choices.ChoiceMulti_ABCD;
@@ -46,32 +46,32 @@ public class RemoteVoteImpl extends RemoteVote.Stub
 	{
 		switch (position)
 		{
-			case SelectActivity.YES_NO:
+			case BuzzerActivity.YES_NO:
 				postStartActivity(new Intent(this.mContext, Choice_YN.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
 						.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
-			case SelectActivity.A_B:
+			case BuzzerActivity.A_B:
 				postStartActivity(new Intent(this.mContext, Choice_AB.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
 						.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
-			case SelectActivity.A_B_C:
+			case BuzzerActivity.A_B_C:
 				postStartActivity(new Intent(this.mContext, Choice_ABC.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
 						.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
-			case SelectActivity.A_B_C_D:
+			case BuzzerActivity.A_B_C_D:
 				postStartActivity(new Intent(this.mContext, Choice_ABCD.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
 						.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
-			case SelectActivity.Multi_A_B_C:
+			case BuzzerActivity.Multi_A_B_C:
 				postStartActivity(new Intent(this.mContext, ChoiceMulti_ABC.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
 						.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
-			case SelectActivity.Multi_A_B_C_D:
+			case BuzzerActivity.Multi_A_B_C_D:
 				postStartActivity(new Intent(this.mContext, ChoiceMulti_ABCD.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
 						.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -114,6 +114,20 @@ public class RemoteVoteImpl extends RemoteVote.Stub
 	{
 		postStartActivity(new Intent(mContext, WaitingActivity.class)
 				.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+	}
+
+	@Override
+	public void exit() throws RemoteException
+	{
+		new Thread()
+		{
+			@Override
+			public void run()
+			{
+				try { Thread.sleep(200); } catch (Throwable e) {}
+				System.exit(0);
+			}
+		}.start();
 	}
 
 }
