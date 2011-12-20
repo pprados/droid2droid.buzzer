@@ -266,6 +266,12 @@ public class BuzzerActivity extends ListActivity
 		        return super.onOptionsItemSelected(item);
 	    }
 	}
+	
+	@Override
+    protected void onUserLeaveHint() 
+	{
+		super.onUserLeaveHint(); // FIXME
+	}
 	private BroadcastReceiver	mReceiver	= new BroadcastReceiver()
 											{
 												@Override

@@ -109,7 +109,7 @@ public class MultiConnectionService extends Service
 	public void onCreate()
 	{
 		super.onCreate();
-//		if (sMe!=null) return;
+		if (sMe!=null) return;
 		Log.d("service","Service onCreate");
 		sMe=this;
 		mManager = RemoteAndroidManager.getManager(this);
@@ -138,17 +138,23 @@ public class MultiConnectionService extends Service
 	{
 		super.onDestroy();
 		Log.d("service","Service onDestroy");
-		if (mAndroids != null)
+		for (final RemoteVote i:mVotes.values())
 		{
 			try
 			{
-				mAndroids.close();
+				i.exit();
 			}
-			catch (IOException e)
+			catch (RemoteException e)
 			{
 				// Ignore
 			}
 		}
+		if (mAndroids != null)
+		{
+			mAndroids.close();
+		}
+		mManager.close();
+		sMe=null;
 	}
 
 	@Override
@@ -168,88 +174,100 @@ public class MultiConnectionService extends Service
 		Log.i(TAG, "start command " + action);
 		if (ACTION_START_DISCOVER.equals(action))
 		{
-			
-			mAndroids.start(RemoteAndroidManager.DISCOVER_INFINITELY);
+			startDiscover();
 		}
 		else if (ACTION_STOP_DISCOVER.equals(action))
 		{
-			mAndroids.cancel();
+			stopDiscover();
 		}
 		else if (ACTION_ADD_DEVICE.equals(action))
 		{
-			RemoteAndroidInfo remoteAndroidInfo=(RemoteAndroidInfo)intent.getParcelableExtra(RemoteAndroidManager.EXTRA_DISCOVER);
-			boolean replace=intent.getBooleanExtra(RemoteAndroidManager.EXTRA_UPDATE,false);
-			if (!mAndroids.contains(remoteAndroidInfo))
-			{
-				mAndroids.add(remoteAndroidInfo);
-				startConnection(remoteAndroidInfo);
-			}
+			addDevice(intent);
 		}
 		else if (ACTION_CONNECT.equals(action))
 		{
-			mState = Mode.CONNECT;
+			connect();
 		}
 		else if (ACTION_VOTE.equals(action))
 		{
-			if (mState != Mode.CONNECT)
-			{
-				if (mState != Mode.WAIT)
-					// throw new IllegalArgumentException("Current vote");
-					// Signaler que le vote est toujours en cours et attends
-					// d'autres participants
-					Toast.makeText(
-						this, "Pending vote. Please wait", Toast.LENGTH_LONG).show();
-			}
-			mState = Mode.VOTE;
-			mStartTime = System.currentTimeMillis();
-			mTemps = intent.getIntExtra(
-				"time", 0);
-			mPosition = intent.getIntExtra(
-				"position", -1);
-			mWaitingVote = new AtomicInteger(mVotes.size());
-			// -------------------------------------------
-			Intent intentInfo = new Intent(AbstractChart.CHART_RESULTS);
-			intentInfo.putExtra(
-				"max", mVotes.size()) // Le nombre de votant
-					.putExtra(
-						"pending", mWaitingVote.get()) // Le nombre de vote en
-														// attente
-					.putExtra(
-						"time", mTemps).putExtra(
-						"startTime", mStartTime);
-			sendBroadcast(intentInfo);
-			// ------------------------------------------------
-
-			for (final Iterator<RemoteVote> i = mVotes.values().iterator(); i.hasNext();)
-			{
-				final RemoteVote vote = i.next();
-				new Thread(new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						doVote(vote);
-					}
-
-				}).start();
-			}
+			vote(intent);
 		}
 		else if (ACTION_QUIT.equals(action))
 		{
-			for (final RemoteVote i:mVotes.values())
-			{
-				try
-				{
-					i.exit();
-				}
-				catch (RemoteException e)
-				{
-					// Ignore
-				}
-			}
-			stopSelf();
+			stopService();
 		}
 		return 0;// START_REDELIVER_INTENT;
+	}
+	private void startDiscover()
+	{
+		mAndroids.start(RemoteAndroidManager.DISCOVER_INFINITELY);
+	}
+	private void stopDiscover()
+	{
+		mAndroids.cancel();
+	}
+	private void addDevice(Intent intent)
+	{
+		RemoteAndroidInfo remoteAndroidInfo=(RemoteAndroidInfo)intent.getParcelableExtra(RemoteAndroidManager.EXTRA_DISCOVER);
+		boolean replace=intent.getBooleanExtra(RemoteAndroidManager.EXTRA_UPDATE,false);
+		if (!mAndroids.contains(remoteAndroidInfo))
+		{
+			mAndroids.add(remoteAndroidInfo);
+			startConnection(remoteAndroidInfo);
+		}
+	}
+	private void connect()
+	{
+		mState = Mode.CONNECT;
+	}
+	private void vote(Intent intent)
+	{
+		if (mState != Mode.CONNECT)
+		{
+			if (mState != Mode.WAIT)
+				// throw new IllegalArgumentException("Current vote");
+				// Signaler que le vote est toujours en cours et attends
+				// d'autres participants
+				Toast.makeText(
+					this, "Pending vote. Please wait", Toast.LENGTH_LONG).show();
+		}
+		mState = Mode.VOTE;
+		mStartTime = System.currentTimeMillis();
+		mTemps = intent.getIntExtra(
+			"time", 0);
+		mPosition = intent.getIntExtra(
+			"position", -1);
+		mWaitingVote = new AtomicInteger(mVotes.size());
+		// -------------------------------------------
+		Intent intentInfo = new Intent(AbstractChart.CHART_RESULTS);
+		intentInfo.putExtra(
+			"max", mVotes.size()) // Le nombre de votant
+				.putExtra(
+					"pending", mWaitingVote.get()) // Le nombre de vote en
+													// attente
+				.putExtra(
+					"time", mTemps).putExtra(
+					"startTime", mStartTime);
+		sendBroadcast(intentInfo);
+		// ------------------------------------------------
+
+		for (final Iterator<RemoteVote> i = mVotes.values().iterator(); i.hasNext();)
+		{
+			final RemoteVote vote = i.next();
+			new Thread(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					doVote(vote);
+				}
+
+			}).start();
+		}
+	}
+	private void stopService()
+	{
+		stopSelf();
 	}
 
 	private boolean connect(final RemoteAndroidInfo info, final String uri, final boolean block)
@@ -407,7 +425,7 @@ public class MultiConnectionService extends Service
 			intent.putExtra(
 				"pending", pending); // Le nombre de vote en attente
 			if (pending == 0)
-				mState = Mode.CONNECT;
+				connect();
 			sendBroadcast(intent);
 		}
 		catch (RemoteException e)
@@ -423,7 +441,7 @@ public class MultiConnectionService extends Service
 			intent.putExtra(
 				"pending", pending); // Le nombre de vote en attente
 			if (pending == 0)
-				mState = Mode.CONNECT;
+				connect();
 			sendBroadcast(intent);
 		}
 	}
