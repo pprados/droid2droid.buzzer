@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -52,6 +53,7 @@ public class MultiConnectionService extends Service
 		CONNECT, VOTE, WAIT
 	};
 
+	private boolean mDiscover;
 	private Mode mState = Mode.CONNECT;
 
 	private RemoteAndroidManager mManager;
@@ -75,9 +77,13 @@ public class MultiConnectionService extends Service
 	{
 		if (remoteAndroidInfo.getUris().length == 0)
 			return;
+		// If try a new connexion, and must pairing devices, the discover fire, but i must ignore it now. I will manage in the onResult.
+		if (!mDiscover)
+			mAndroids.remove(remoteAndroidInfo); 
 		if (replace)
 			return; // TODO Optimise la connexion
-		startConnection(remoteAndroidInfo);
+		if (mDiscover)
+			startConnection(remoteAndroidInfo);
 		
 	}
 	private void startConnection(final RemoteAndroidInfo remoteAndroidInfo)
@@ -112,23 +118,39 @@ public class MultiConnectionService extends Service
 		if (sMe!=null) return;
 		Log.d("service","Service onCreate");
 		sMe=this;
-		mManager = RemoteAndroidManager.getManager(this);
-		mAndroids = mManager.newDiscoveredAndroid(new ListRemoteAndroidInfo.DiscoverListener()
+		RemoteAndroidManager.bindManager(this, new RemoteAndroidManager.ManagerListener()
 		{
+			
 			@Override
-			public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
+			public void unbind(RemoteAndroidManager manager)
 			{
-				MultiConnectionService.this.onDiscover(remoteAndroidInfo,replace);
+				mManager=null;
 			}
-
+			
 			@Override
-			public void onDiscoverStart()
+			public void bind(RemoteAndroidManager manager)
 			{
-			}
+				// TODO Auto-generated method stub
+				mManager=manager;
+				mAndroids = mManager.newDiscoveredAndroid(new ListRemoteAndroidInfo.DiscoverListener()
+				{
+					@Override
+					public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
+					{
+						MultiConnectionService.this.onDiscover(remoteAndroidInfo,replace);
+					}
 
-			@Override
-			public void onDiscoverStop()
-			{
+					@Override
+					public void onDiscoverStart()
+					{
+					}
+
+					@Override
+					public void onDiscoverStop()
+					{
+					}
+				});
+				
 			}
 		});
 	}
@@ -140,14 +162,22 @@ public class MultiConnectionService extends Service
 		Log.d("service","Service onDestroy");
 		for (final RemoteVote i:mVotes.values())
 		{
-			try
+			new AsyncTask<Void, Void, Void>()
 			{
-				i.exit();
-			}
-			catch (RemoteException e)
-			{
-				// Ignore
-			}
+				@Override
+				protected Void doInBackground(Void... params)
+				{
+					try
+					{
+						i.exit();
+					}
+					catch (RemoteException e)
+					{
+						// Ignore
+					}
+					return null;
+				}
+			}.execute();
 		}
 		if (mAndroids != null)
 		{
@@ -165,7 +195,7 @@ public class MultiConnectionService extends Service
 
 	int getSize()
 	{
-		return mAndroids.size();
+		return (mAndroids==null) ? 0 : mAndroids.size();
 	}
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
@@ -200,11 +230,17 @@ public class MultiConnectionService extends Service
 	}
 	private void startDiscover()
 	{
-		mAndroids.start(RemoteAndroidManager.DISCOVER_INFINITELY);
+		if (mAndroids!=null)
+		{
+			mDiscover=true;
+			mAndroids.start(RemoteAndroidManager.DISCOVER_INFINITELY);
+		}
 	}
 	private void stopDiscover()
 	{
-		mAndroids.cancel();
+		mDiscover=false;
+		if (mAndroids!=null)
+			mAndroids.cancel();
 	}
 	private void addDevice(Intent intent)
 	{
@@ -318,11 +354,15 @@ public class MultiConnectionService extends Service
 								public void onFinish(int status)
 								{
 									if (status == -2)
-										;
-									// setStatus("Impossible to install application not from market");
+										Toast.makeText(MultiConnectionService.this, 
+											"Device "+rA.getInfos().getName()+" accept only applications from market.", 
+											Toast.LENGTH_LONG);
 									else if (status == -1)
-										;
-									// setStatus("Install refused");
+									{
+										// Refused
+										mVotes.remove(uri);
+										mAndroids.remove(info);
+									}
 									else if (status >= 0)
 									{
 										rA.bindService(
@@ -368,7 +408,8 @@ public class MultiConnectionService extends Service
 								@Override
 								public void onError(Throwable e)
 								{
-									// TODO
+									mVotes.remove(uri);
+									mAndroids.remove(info);
 								}
 
 								@Override
