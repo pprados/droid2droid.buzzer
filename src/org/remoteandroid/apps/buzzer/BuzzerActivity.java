@@ -1,5 +1,7 @@
 package org.remoteandroid.apps.buzzer;
 
+import java.nio.charset.Charset;
+
 import org.remoteandroid.RemoteAndroidInfo;
 import org.remoteandroid.RemoteAndroidManager;
 import org.remoteandroid.apps.buzzer.charts.ChartMulti_ABC;
@@ -18,6 +20,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
+import android.nfc.NfcAdapter.CreateNdefMessageCallback;
+import android.nfc.NfcEvent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,8 +42,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class BuzzerActivity extends ListActivity
+implements CreateNdefMessageCallback
 {
 	public static boolean		DEBUG			= true;
+	public static boolean		USE_NFC			= false;
 
 	public static final int		YES_NO			= 0;
 
@@ -100,6 +109,54 @@ public class BuzzerActivity extends ListActivity
 			size=MultiConnectionService.sMe.getSize();
 		mDevices.setText(" " + size);
 		startService(new Intent(MultiConnectionService.ACTION_CONNECT));
+		if (USE_NFC)
+			exposeNFC();
+	}
+
+	@Override
+	public void onNewIntent(Intent intent)
+	{
+		// onResume gets called after this to handle the intent
+		setIntent(intent);
+	}
+	NfcAdapter mNfcAdapter;
+	private void exposeNFC()
+	{
+		// Check for available NFC Adapter
+		if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+		{
+			mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
+	        if (mNfcAdapter != null) 
+	        {
+	        	mNfcAdapter.setNdefPushMessageCallback(this, this);
+	        }
+		}
+	}	
+    private void unregisterNfc()
+    {
+    	if (mNfcAdapter!=null)
+    	{
+    		mNfcAdapter.disableForegroundDispatch(this);
+    	}
+    }
+	
+	private static final byte[] NDEF_MIME_TYPE="application/org.remoteandroid.apps.buzzer".getBytes(Charset.forName("US-ASCII"));
+	public NdefMessage createNdefRecord(byte[] payload) 
+	{
+		return new NdefMessage(
+				new NdefRecord[]
+				{
+					new NdefRecord(NdefRecord.TNF_MIME_MEDIA, NDEF_MIME_TYPE, new byte[0], payload),
+					NdefRecord.createApplicationRecord("org.remoteandroid.apps.buzzer")
+				}
+			);
+    }
+	
+	@Override
+	public NdefMessage createNdefMessage(NfcEvent event)
+	{
+		String text = ("Beam me up, Android!\n\n" + "Beam Time: " + System.currentTimeMillis());
+		return createNdefRecord(text.getBytes());
 	}
 
 	public static void enableStrictMode()
@@ -280,4 +337,5 @@ public class BuzzerActivity extends ListActivity
 													mDevices.setText(" " + MultiConnectionService.sMe.getSize());
 												}
 											};
+
 }
