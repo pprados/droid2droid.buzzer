@@ -42,8 +42,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class BuzzerActivity extends ListActivity
-implements CreateNdefMessageCallback
 {
+	CreateNdefMessageCallback mNfcCallBack;
+	
 	public static boolean		DEBUG			= true;
 	public static boolean		USE_NFC			= false;
 
@@ -119,7 +120,8 @@ implements CreateNdefMessageCallback
 		// onResume gets called after this to handle the intent
 		setIntent(intent);
 	}
-	NfcAdapter mNfcAdapter;
+	//---------------------------
+	private NfcAdapter mNfcAdapter;
 	private void exposeNFC()
 	{
 		// Check for available NFC Adapter
@@ -128,7 +130,16 @@ implements CreateNdefMessageCallback
 			mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
 	        if (mNfcAdapter != null) 
 	        {
-	        	mNfcAdapter.setNdefPushMessageCallback(this, this);
+	    		mNfcCallBack=new CreateNdefMessageCallback()
+	    		{
+	    			@Override
+	    			public NdefMessage createNdefMessage(NfcEvent event)
+	    			{
+	    				String text = ("Beam me up, Android!\n\n" + "Beam Time: " + System.currentTimeMillis());
+	    				return createNdefRecord(text.getBytes());
+	    			}
+	    		};
+	        	mNfcAdapter.setNdefPushMessageCallback(mNfcCallBack, this);
 	        }
 		}
 	}	
@@ -139,6 +150,7 @@ implements CreateNdefMessageCallback
     		mNfcAdapter.disableForegroundDispatch(this);
     	}
     }
+	//---------------------------
 	
 	private static final byte[] NDEF_MIME_TYPE="application/org.remoteandroid.apps.buzzer".getBytes(Charset.forName("US-ASCII"));
 	public NdefMessage createNdefRecord(byte[] payload) 
@@ -152,12 +164,6 @@ implements CreateNdefMessageCallback
 			);
     }
 	
-	@Override
-	public NdefMessage createNdefMessage(NfcEvent event)
-	{
-		String text = ("Beam me up, Android!\n\n" + "Beam Time: " + System.currentTimeMillis());
-		return createNdefRecord(text.getBytes());
-	}
 
 	public static void enableStrictMode()
 	{
@@ -317,7 +323,16 @@ implements CreateNdefMessageCallback
 	    switch (item.getItemId()) 
 	    {
 		    case R.id.add:
-		    	startActivityForResult(new Intent(RemoteAndroidManager.ACTION_CONNECT_ANDROID), REQUEST_CONNECT_CODE);
+				Intent intent=new Intent(RemoteAndroidManager.ACTION_CONNECT_ANDROID);
+				if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+				{
+					intent.putExtra(RemoteAndroidManager.EXTRA_THEME_ID,android.R.style.Theme_Holo_Light_DarkActionBar);
+				}
+				else
+				{
+					intent.putExtra(RemoteAndroidManager.EXTRA_THEME_ID,android.R.style.Theme_Holo_Light_NoActionBar);
+				}
+		    	startActivityForResult(intent, REQUEST_CONNECT_CODE);
 		        return true;
 		    default:
 		        return super.onOptionsItemSelected(item);
