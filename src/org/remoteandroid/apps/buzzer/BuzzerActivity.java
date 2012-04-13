@@ -1,5 +1,6 @@
 package org.remoteandroid.apps.buzzer;
 
+
 import java.nio.charset.Charset;
 
 import org.remoteandroid.RemoteAndroidInfo;
@@ -9,12 +10,13 @@ import org.remoteandroid.apps.buzzer.charts.Chart_AB;
 import org.remoteandroid.apps.buzzer.charts.Chart_ABC;
 import org.remoteandroid.apps.buzzer.charts.Chart_ABCD;
 import org.remoteandroid.apps.buzzer.charts.Chart_YN;
-import org.remoteandroid.apps.buzzer.remote.RemoteVote;
+
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -28,7 +30,7 @@ import android.nfc.NfcEvent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.StrictMode;
+import android.os.Parcelable;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -46,7 +48,8 @@ public class BuzzerActivity extends ListActivity
 	CreateNdefMessageCallback mNfcCallBack;
 	
 	public static boolean		DEBUG			= true;
-	public static boolean		USE_NFC			= false;
+	public static boolean		USE_NFC			= true;
+	public static boolean		USE_BUMP		= true;
 
 	public static final int		YES_NO			= 0;
 
@@ -70,11 +73,11 @@ public class BuzzerActivity extends ListActivity
 
 	private TextView			mDevices;
 
-	private int							mTime;
+	private int					mTime;
 
-	private Handler						mHandler		= new Handler();
+	private Handler				mHandler		= new Handler();
 
-	private CheckBox					mDiscover;
+	private CheckBox			mDiscover;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -111,7 +114,7 @@ public class BuzzerActivity extends ListActivity
 		mDevices.setText(" " + size);
 		startService(new Intent(MultiConnectionService.ACTION_CONNECT));
 		if (USE_NFC)
-			exposeNFC();
+			onNfcCreate();
 	}
 
 	@Override
@@ -119,65 +122,9 @@ public class BuzzerActivity extends ListActivity
 	{
 		// onResume gets called after this to handle the intent
 		setIntent(intent);
+		if (USE_NFC)
+			onNfcNewIntent(intent);
 	}
-	//---------------------------
-	private NfcAdapter mNfcAdapter;
-	private void exposeNFC()
-	{
-		// Check for available NFC Adapter
-		if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-		{
-			mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-	        if (mNfcAdapter != null) 
-	        {
-	    		mNfcCallBack=new CreateNdefMessageCallback()
-	    		{
-	    			@Override
-	    			public NdefMessage createNdefMessage(NfcEvent event)
-	    			{
-	    				String text = ("Beam me up, Android!\n\n" + "Beam Time: " + System.currentTimeMillis());
-	    				return createNdefRecord(text.getBytes());
-	    			}
-	    		};
-	        	mNfcAdapter.setNdefPushMessageCallback(mNfcCallBack, this);
-	        }
-		}
-	}	
-    private void unregisterNfc()
-    {
-    	if (mNfcAdapter!=null)
-    	{
-    		mNfcAdapter.disableForegroundDispatch(this);
-    	}
-    }
-	//---------------------------
-	
-	private static final byte[] NDEF_MIME_TYPE="application/org.remoteandroid.apps.buzzer".getBytes(Charset.forName("US-ASCII"));
-	public NdefMessage createNdefRecord(byte[] payload) 
-	{
-		return new NdefMessage(
-				new NdefRecord[]
-				{
-					new NdefRecord(NdefRecord.TNF_MIME_MEDIA, NDEF_MIME_TYPE, new byte[0], payload),
-					NdefRecord.createApplicationRecord("org.remoteandroid.apps.buzzer")
-				}
-			);
-    }
-	
-
-	public static void enableStrictMode()
-	{
-		if (DEBUG && Build.VERSION.SDK_INT >= 9/* Build.VERSION_CODES.GINGERBREAD */)
-		{
-			StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll()
-					.penaltyLog()
-					// .penaltyDialog()
-					.build());
-			StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyDropBox()
-					.build());
-		}
-	}
-
 	@Override
 	protected void onResume()
 	{
@@ -189,7 +136,8 @@ public class BuzzerActivity extends ListActivity
 
 			showDialog(DIALOG_MARKET);
 		}
-
+		if (USE_NFC)
+			onNfcResume();
 	}
 
 	@Override
@@ -197,7 +145,10 @@ public class BuzzerActivity extends ListActivity
 	{
 		super.onPause();
 		unregisterReceiver(mReceiver);
+		if (USE_NFC)
+			onNfcPause();
 	}
+	
 	@Override
 	public Dialog onCreateDialog(int id)
 	{
@@ -345,12 +296,107 @@ public class BuzzerActivity extends ListActivity
 		super.onUserLeaveHint(); // FIXME
 	}
 	private BroadcastReceiver	mReceiver	= new BroadcastReceiver()
-											{
-												@Override
-												public void onReceive(Context context, Intent intent)
-												{
-													mDevices.setText(" " + MultiConnectionService.sMe.getSize());
-												}
-											};
+	{
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+			mDevices.setText(" " + MultiConnectionService.sMe.getSize());
+		}
+	};
+
+	//---------------------------
+	// Register a listener when another device ask my tag
+	NfcAdapter mNfcAdapter;
+	protected void onNfcCreate()
+	{
+		if (USE_NFC && USE_BUMP && Build.VERSION.SDK_INT>=Build.VERSION_CODES.GINGERBREAD)
+		{
+			mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
+	        if (mNfcAdapter != null) 
+	        {
+	        	mNfcAdapter.setNdefPushMessageCallback(new CreateNdefMessageCallback()
+	        	{
+
+					@Override
+					public NdefMessage createNdefMessage(NfcEvent event)
+					{
+						// Publish my RemoteAndroidInfo
+						return MultiConnectionService.mManager.createNdefMessage();
+					}
+	        		
+	        	}, this);
+	        }
+		}
+	}
+	
+	protected void onNfcNewIntent(Intent intent)
+	{
+		Parcelable tag=intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+		if (tag!=null)
+		{
+			// Check the caller. Refuse spoof events
+			checkCallingPermission("com.android.nfc.permission.NFCEE_ADMIN");
+			startService(new Intent(MultiConnectionService.ACTION_NDEF_DISCOVER)
+				.putExtra(NfcAdapter.EXTRA_NDEF_MESSAGES,intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)));
+			
+		}
+	}
+
+	protected void onNfcResume()
+	{
+		if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.GINGERBREAD)
+		{
+			NfcAdapter mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
+			if (USE_NFC && USE_BUMP && mNfcAdapter!=null)
+			{
+				PendingIntent pendingIntent = 
+						PendingIntent.getActivity(this, 0, 
+							new Intent(this, this.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+				mNfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null);
+			}
+		}
+	}
+	// Unregister the exposition of my tag
+    protected void onNfcPause()
+    {
+		if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.GINGERBREAD)
+		{
+	    	if (USE_NFC && USE_BUMP && mNfcAdapter!=null)
+	    	{
+	    		mNfcAdapter.disableForegroundDispatch(this);
+	    	}
+		}
+    }
+    
+//	public static NdefMessage createNdefMessage(Context context,RemoteAndroidInfo info,boolean expose)
+//	{
+//		Messages.BroadcastMsg.Builder broadcastBuilder = Messages.BroadcastMsg.newBuilder();
+//		Messages.BroadcastMsg msg=broadcastBuilder
+//			.setType(expose ? Messages.BroadcastMsg.Type.EXPOSE : Messages.BroadcastMsg.Type.CONNECT)
+//			.setIdentity(ProtobufConvs.toIdentity(info))
+//			.build();
+//		byte[] payload=msg.toByteArray();
+//		return new NdefMessage(
+//			new NdefRecord[]
+//			{
+//				NdefRecord.createApplicationRecord("org.remoteandroid"),
+//				new NdefRecord(NdefRecord.TNF_MIME_MEDIA, NDEF_MIME_TYPE, new byte[0], payload),
+////														NdefRecord.createUri("www.remotandroid.org")
+//			}
+//		);
+//		
+//	}
+//	private static final byte[] NDEF_MIME_TYPE="application/org.remoteandroid.apps.buzzer".getBytes(Charset.forName("US-ASCII"));
+//	public NdefMessage createNdefRecord(byte[] payload) 
+//	{
+//		return new NdefMessage(
+//				new NdefRecord[]
+//				{
+//					new NdefRecord(NdefRecord.TNF_MIME_MEDIA, NDEF_MIME_TYPE, new byte[0], payload),
+//					NdefRecord.createApplicationRecord("org.remoteandroid.apps.buzzer")
+//				}
+//			);
+//    }
+	
 
 }

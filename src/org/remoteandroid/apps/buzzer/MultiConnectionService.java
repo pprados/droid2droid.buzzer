@@ -24,9 +24,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
+import android.nfc.NdefMessage;
+import android.nfc.NfcAdapter;
+import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
@@ -49,14 +53,16 @@ public class MultiConnectionService extends Service
 
 	public static final String ACTION_QUIT = "org.remoteandroid.apps.buzzer.QUIT";
 
+	public static final String ACTION_NDEF_DISCOVER = "org.remoteandroid.apps.buzzer.NDEF_DISCOVER";
+
 	private enum Mode {
 		CONNECT, VOTE, WAIT
 	};
 
-	private boolean mDiscover;
 	private Mode mState = Mode.CONNECT;
 
-	private RemoteAndroidManager mManager;
+	// FIXME: remove static
+	public static RemoteAndroidManager mManager;
 
 	public static Map<String, RemoteVote> mVotes = Collections.synchronizedMap(new HashMap<String, RemoteVote>());
 
@@ -78,12 +84,11 @@ public class MultiConnectionService extends Service
 		if (remoteAndroidInfo.getUris().length == 0)
 			return;
 		// If try a new connexion, and must pairing devices, the discover fire, but i must ignore it now. I will manage in the onResult.
-		if (!mDiscover)
-			mAndroids.remove(remoteAndroidInfo); 
+		mAndroids.remove(remoteAndroidInfo);
+		mAndroids.add(remoteAndroidInfo);
 		if (replace)
 			return; // TODO Optimise la connexion
-		if (mDiscover)
-			startConnection(remoteAndroidInfo);
+		startConnection(remoteAndroidInfo);
 		
 	}
 	private void startConnection(final RemoteAndroidInfo remoteAndroidInfo)
@@ -226,19 +231,21 @@ public class MultiConnectionService extends Service
 		{
 			stopService();
 		}
+		else if (ACTION_NDEF_DISCOVER.equals(action))
+		{
+			ndefDiscover(intent);
+		}
 		return 0;// START_REDELIVER_INTENT;
 	}
 	private void startDiscover()
 	{
 		if (mAndroids!=null)
 		{
-			mDiscover=true;
 			mAndroids.start(RemoteAndroidManager.DISCOVER_INFINITELY);
 		}
 	}
 	private void stopDiscover()
 	{
-		mDiscover=false;
 		if (mAndroids!=null)
 			mAndroids.cancel();
 	}
@@ -246,6 +253,10 @@ public class MultiConnectionService extends Service
 	{
 		RemoteAndroidInfo remoteAndroidInfo=(RemoteAndroidInfo)intent.getParcelableExtra(RemoteAndroidManager.EXTRA_DISCOVER);
 		boolean replace=intent.getBooleanExtra(RemoteAndroidManager.EXTRA_UPDATE,false);
+		registerDevice(remoteAndroidInfo);
+	}
+	public void registerDevice(RemoteAndroidInfo remoteAndroidInfo)
+	{
 		if (!mAndroids.contains(remoteAndroidInfo))
 		{
 			mAndroids.add(remoteAndroidInfo);
@@ -255,6 +266,17 @@ public class MultiConnectionService extends Service
 	private void connect()
 	{
 		mState = Mode.CONNECT;
+	}
+	
+	private void ndefDiscover(Intent intent)
+	{
+		if (mManager!=null)
+		{
+			Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+			RemoteAndroidInfo info=mManager.parseNfcRawMessages(this,rawMsgs);
+    		if (info!=null)
+    			registerDevice(info);
+		}
 	}
 	private void vote(Intent intent)
 	{
