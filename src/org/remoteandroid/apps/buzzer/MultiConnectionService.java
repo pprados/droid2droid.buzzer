@@ -123,6 +123,24 @@ public class MultiConnectionService extends Service
 		if (sMe!=null) return;
 		Log.d("service","Service onCreate");
 		sMe=this;
+		mAndroids=RemoteAndroidManager.newDiscoveredAndroid(this, new ListRemoteAndroidInfo.DiscoverListener()
+		{
+			@Override
+			public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
+			{
+				MultiConnectionService.this.onDiscover(remoteAndroidInfo,replace);
+			}
+
+			@Override
+			public void onDiscoverStart()
+			{
+			}
+
+			@Override
+			public void onDiscoverStop()
+			{
+			}
+		});
 		RemoteAndroidManager.bindManager(this, new RemoteAndroidManager.ManagerListener()
 		{
 			
@@ -137,25 +155,6 @@ public class MultiConnectionService extends Service
 			{
 				// TODO Auto-generated method stub
 				mManager=manager;
-				mAndroids = mManager.newDiscoveredAndroid(new ListRemoteAndroidInfo.DiscoverListener()
-				{
-					@Override
-					public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
-					{
-						MultiConnectionService.this.onDiscover(remoteAndroidInfo,replace);
-					}
-
-					@Override
-					public void onDiscoverStart()
-					{
-					}
-
-					@Override
-					public void onDiscoverStop()
-					{
-					}
-				});
-				
 			}
 		});
 	}
@@ -235,19 +234,19 @@ public class MultiConnectionService extends Service
 		{
 			ndefDiscover(intent);
 		}
-		return 0;// START_REDELIVER_INTENT;
+		return START_NOT_STICKY;//START_REDELIVER_INTENT;
 	}
 	private void startDiscover()
 	{
-		if (mAndroids!=null)
+		if (mManager!=null)
 		{
-			mAndroids.start(RemoteAndroidManager.DISCOVER_INFINITELY);
+			mManager.startDiscover(0,RemoteAndroidManager.DISCOVER_INFINITELY);
 		}
 	}
 	private void stopDiscover()
 	{
-		if (mAndroids!=null)
-			mAndroids.cancel();
+		if (mManager!=null)
+			mManager.cancelDiscover();
 	}
 	private void addDevice(Intent intent)
 	{
