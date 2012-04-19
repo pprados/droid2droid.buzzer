@@ -3,7 +3,7 @@
     package="org.remoteandroid.apps.buzzer"
     android:versionCode="1"
     android:versionName="1.0" >
-	<uses-sdk android:minSdkVersion="7" android:targetSdkVersion="14"/>
+	<uses-sdk android:minSdkVersion="7" android:targetSdkVersion="15"/>
     <permission
         android:description="@string/permission_discover_desc"
         android:label="@string/permission_discover_label"

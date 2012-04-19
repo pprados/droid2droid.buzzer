@@ -272,7 +272,7 @@ public class MultiConnectionService extends Service
 		if (mManager!=null)
 		{
 			Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-			RemoteAndroidInfo info=mManager.parseNfcRawMessages(this,rawMsgs);
+			RemoteAndroidInfo info=RemoteAndroidManager.newNfcIntegrationHelper(null).parseNfcRawMessages(this,rawMsgs);
     		if (info!=null)
     			registerDevice(info);
 		}
