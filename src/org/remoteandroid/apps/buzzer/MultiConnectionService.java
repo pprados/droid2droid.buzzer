@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,8 +66,9 @@ public class MultiConnectionService extends Service
 	// FIXME: remove static
 	public static RemoteAndroidManager mManager;
 
-	public static Map<String, RemoteVote> mVotes = Collections.synchronizedMap(new HashMap<String, RemoteVote>());
-
+	public static Map<String, RemoteVote> sVotes = Collections.synchronizedMap(new HashMap<String, RemoteVote>());
+	public static List<RemoteAndroid> sRemoteAndroids=Collections.synchronizedList(new ArrayList<RemoteAndroid>());
+	
 	private long mStartTime;
 
 	private int mPosition;
@@ -74,6 +77,7 @@ public class MultiConnectionService extends Service
 
 	private AtomicInteger mWaitingVote = new AtomicInteger();
 
+	private boolean mDiscover;
 	// List of knowns devices
 	ListRemoteAndroidInfo mAndroids;
 
@@ -81,13 +85,16 @@ public class MultiConnectionService extends Service
 
 	public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
 	{
+		if (!mDiscover)
+			return;
+
 		if (remoteAndroidInfo.getUris().length == 0)
 			return;
 		// If try a new connexion, and must pairing devices, the discover fire, but i must ignore it now. I will manage in the onResult.
 		mAndroids.remove(remoteAndroidInfo);
 		mAndroids.add(remoteAndroidInfo);
-		if (replace)
-			return; // TODO Optimise la connexion
+//		if (replace)
+//			return; // TODO Optimise la connexion
 		startConnection(remoteAndroidInfo);
 		
 	}
@@ -102,12 +109,14 @@ public class MultiConnectionService extends Service
 				for (String uri : remoteAndroidInfo.getUris())
 				{
 
+					Log.d("Buzzer","try connection with "+uri+" for "+remoteAndroidInfo.getName());
 					if (connect(remoteAndroidInfo, uri, true))
 					{
+						Log.d("Buzzer","Connected with "+uri+" for "+remoteAndroidInfo.getName());
 						if (mState == Mode.VOTE)
 						{
 							mWaitingVote.incrementAndGet();
-							doVote(mVotes.get(uri));
+							doVote(sVotes.get(uri));
 						}
 						break;
 					}
@@ -164,31 +173,57 @@ public class MultiConnectionService extends Service
 	{
 		super.onDestroy();
 		Log.d("service","Service onDestroy");
-		for (final RemoteVote i:mVotes.values())
-		{
-			new AsyncTask<Void, Void, Void>()
-			{
-				@Override
-				protected Void doInBackground(Void... params)
-				{
-					try
-					{
-						i.exit();
-					}
-					catch (RemoteException e)
-					{
-						// Ignore
-					}
-					return null;
-				}
-			}.execute();
-		}
-		if (mAndroids != null)
-		{
-			mAndroids.close();
-		}
-		mManager.close();
+		stopService();
+	}
+	private synchronized void stopService()
+	{
+		if (sMe==null)
+			return;
 		sMe=null;
+		mAndroids.close();
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				stopSyncService();
+			}
+		}).start();
+//		new AsyncTask<Void, Void, Void>()
+//		{
+//			@Override
+//			protected Void doInBackground(Void... params)
+//			{
+//				stopSyncService();
+//				return null;
+//			}
+//		}.execute();
+		stopSelf();
+	}
+
+	private void stopSyncService()
+	{
+		for (RemoteVote vote:sVotes.values())
+		{
+			try
+			{
+				vote.exit();
+			}
+			catch (RemoteException e)
+			{
+				// Ignore
+			}
+		}
+		sVotes.clear();
+		for (RemoteAndroid ra:sRemoteAndroids)
+		{
+			ra.close();
+		}
+		sRemoteAndroids.clear();
+		if (mManager!=null)
+			mManager.close();
+		sMe=null;
+		
 	}
 
 	@Override
@@ -199,7 +234,7 @@ public class MultiConnectionService extends Service
 
 	int getSize()
 	{
-		return (mAndroids==null) ? 0 : mAndroids.size();
+		return (sVotes==null) ? 0 : sVotes.size();
 	}
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
@@ -240,27 +275,36 @@ public class MultiConnectionService extends Service
 	{
 		if (mManager!=null)
 		{
-			mManager.startDiscover(0,RemoteAndroidManager.DISCOVER_INFINITELY);
+			mDiscover=true;
+			mManager.startDiscover(RemoteAndroidManager.FLAG_ACCEPT_ANONYMOUS,RemoteAndroidManager.DISCOVER_INFINITELY);
 		}
 	}
 	private void stopDiscover()
 	{
 		if (mManager!=null)
+		{
+			mDiscover=false;
 			mManager.cancelDiscover();
+		}
 	}
 	private void addDevice(Intent intent)
 	{
 		RemoteAndroidInfo remoteAndroidInfo=(RemoteAndroidInfo)intent.getParcelableExtra(RemoteAndroidManager.EXTRA_DISCOVER);
 		boolean replace=intent.getBooleanExtra(RemoteAndroidManager.EXTRA_UPDATE,false);
-		registerDevice(remoteAndroidInfo);
+		registerDevice(remoteAndroidInfo,replace);
 	}
-	public void registerDevice(RemoteAndroidInfo remoteAndroidInfo)
+	public void registerDevice(RemoteAndroidInfo remoteAndroidInfo,boolean replace) // FIXME: use replace
 	{
-		if (!mAndroids.contains(remoteAndroidInfo))
+		for (String uri:remoteAndroidInfo.getUris())
 		{
-			mAndroids.add(remoteAndroidInfo);
-			startConnection(remoteAndroidInfo);
+			if (sVotes.get(uri)!=null) 
+			{
+				Log.d(TAG,"Refuse to register another time "+remoteAndroidInfo);
+				return;
+			}
 		}
+		mAndroids.add(remoteAndroidInfo);
+		startConnection(remoteAndroidInfo);
 	}
 	private void connect()
 	{
@@ -274,7 +318,7 @@ public class MultiConnectionService extends Service
 			Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
 			RemoteAndroidInfo info=RemoteAndroidManager.newNfcIntegrationHelper(null).parseNfcRawMessages(this,rawMsgs);
     		if (info!=null)
-    			registerDevice(info);
+    			registerDevice(info,true);
 		}
 	}
 	private void vote(Intent intent)
@@ -294,11 +338,11 @@ public class MultiConnectionService extends Service
 			"time", 0);
 		mPosition = intent.getIntExtra(
 			"position", -1);
-		mWaitingVote = new AtomicInteger(mVotes.size());
+		mWaitingVote = new AtomicInteger(sVotes.size());
 		// -------------------------------------------
 		Intent intentInfo = new Intent(AbstractChart.CHART_RESULTS);
 		intentInfo.putExtra(
-			"max", mVotes.size()) // Le nombre de votant
+			"max", sVotes.size()) // Le nombre de votant
 				.putExtra(
 					"pending", mWaitingVote.get()) // Le nombre de vote en
 													// attente
@@ -308,7 +352,7 @@ public class MultiConnectionService extends Service
 		sendBroadcast(intentInfo);
 		// ------------------------------------------------
 
-		for (final Iterator<RemoteVote> i = mVotes.values().iterator(); i.hasNext();)
+		for (final Iterator<RemoteVote> i = sVotes.values().iterator(); i.hasNext();)
 		{
 			final RemoteVote vote = i.next();
 			new Thread(new Runnable()
@@ -322,11 +366,6 @@ public class MultiConnectionService extends Service
 			}).start();
 		}
 	}
-	private void stopService()
-	{
-		stopSelf();
-	}
-
 	private boolean connect(final RemoteAndroidInfo info, final String uri, final boolean block)
 	{
 		if (info.getUris().length == 0)
@@ -344,7 +383,7 @@ public class MultiConnectionService extends Service
 				@Override
 				public void onServiceDisconnected(ComponentName name)
 				{
-					mVotes.remove(uri);
+					sVotes.remove(uri);
 					mAndroids.remove(info);
 					if (block)
 					{
@@ -360,6 +399,7 @@ public class MultiConnectionService extends Service
 				{
 					final RemoteAndroid rA = (RemoteAndroid) service;
 					rA.setExecuteTimeout(60*60000L);
+					sRemoteAndroids.add(rA);
 					try
 					{
 						rA.pushMe(
@@ -381,7 +421,7 @@ public class MultiConnectionService extends Service
 									else if (status == -1)
 									{
 										// Refused
-										mVotes.remove(uri);
+										sVotes.remove(uri);
 										mAndroids.remove(info);
 									}
 									else if (status >= 0)
@@ -401,7 +441,7 @@ public class MultiConnectionService extends Service
 												public void onServiceConnected(ComponentName name, IBinder service)
 												{
 													vote = RemoteVote.Stub.asInterface(service);
-													mVotes.put(uri, vote);
+													sVotes.put(uri, vote);
 													if (block)
 													{
 														result.rc=true;
@@ -429,7 +469,7 @@ public class MultiConnectionService extends Service
 								@Override
 								public void onError(Throwable e)
 								{
-									mVotes.remove(uri);
+									sVotes.remove(uri);
 									mAndroids.remove(info);
 								}
 
@@ -452,7 +492,7 @@ public class MultiConnectionService extends Service
 						e.printStackTrace();
 					}
 				}
-			}, 0);
+			}, RemoteAndroidManager.FLAG_PROPOSE_PAIRING);
 		if (block)
 		{
 			synchronized (this)
@@ -483,7 +523,7 @@ public class MultiConnectionService extends Service
 			intent.putExtra(
 				"result", result); // Le résultat du vote
 			intent.putExtra(
-				"max", mVotes.size()); // Le nombre de votant
+				"max", sVotes.size()); // Le nombre de votant
 			intent.putExtra(
 				"pending", pending); // Le nombre de vote en attente
 			if (pending == 0)
@@ -493,12 +533,12 @@ public class MultiConnectionService extends Service
 		catch (RemoteException e)
 		{
 			e.printStackTrace();
-			mVotes.remove(vote);
+			sVotes.remove(vote);
 			Intent intent = new Intent(AbstractChart.CHART_RESULTS);
 			intent.putExtra(
 				"result", -1); // Le résultat du vote
 			intent.putExtra(
-				"max", mVotes.size()); // Le nombre de votant
+				"max", sVotes.size()); // Le nombre de votant
 			int pending = mWaitingVote.decrementAndGet();
 			intent.putExtra(
 				"pending", pending); // Le nombre de vote en attente

@@ -210,7 +210,7 @@ public class BuzzerActivity extends ListActivity
 	protected void onListItemClick(ListView parent, View view, final int position, long id)
 	{
 		super.onListItemClick(parent, view, position, id);
-		if (!MultiConnectionService.mVotes.isEmpty())
+		if (!MultiConnectionService.sVotes.isEmpty())
 		{
 			mTime = Integer.parseInt(mEditText.getText().toString());
 			Intent intent = null;
@@ -283,6 +283,8 @@ public class BuzzerActivity extends ListActivity
 				{
 					intent.putExtra(RemoteAndroidManager.EXTRA_THEME_ID,android.R.style.Theme_Holo_Light_NoActionBar);
 				}
+//				intent.putExtra(RemoteAndroidManager.EXTRA_ACCEPT_ANONYMOUS, true);
+				intent.putExtra(RemoteAndroidManager.EXTRA_FLAGS,RemoteAndroidManager.FLAG_ACCEPT_ANONYMOUS);
 		    	startActivityForResult(intent, REQUEST_CONNECT_CODE);
 		        return true;
 		    default:
