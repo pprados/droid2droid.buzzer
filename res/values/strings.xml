@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <resources>
-    <string name="app_name">Buzzer Application</string>
+    <string name="app_name">RA Buzzer</string>
     <string name="discover">Discover</string>
     <string name="active_connection">Active connections: </string>
     <string-array name="choice_array">
