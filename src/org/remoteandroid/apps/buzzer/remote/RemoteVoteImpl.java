@@ -49,32 +49,32 @@ public class RemoteVoteImpl extends RemoteVote.Stub
 			case BuzzerActivity.YES_NO:
 				postStartActivity(new Intent(this.mContext, Choice_YN.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
-						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
+						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
 			case BuzzerActivity.A_B:
 				postStartActivity(new Intent(this.mContext, Choice_AB.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
-						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
+						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
 			case BuzzerActivity.A_B_C:
 				postStartActivity(new Intent(this.mContext, Choice_ABC.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
-						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
+						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
 			case BuzzerActivity.A_B_C_D:
 				postStartActivity(new Intent(this.mContext, Choice_ABCD.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
-						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
+						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
 			case BuzzerActivity.Multi_A_B_C:
 				postStartActivity(new Intent(this.mContext, ChoiceMulti_ABC.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
-						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
+						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
 			case BuzzerActivity.Multi_A_B_C_D:
 				postStartActivity(new Intent(this.mContext, ChoiceMulti_ABCD.class)
 						.putExtra("startTime", System.currentTimeMillis()).putExtra("time", temps)
-						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
+						.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT|Intent.FLAG_ACTIVITY_NEW_TASK));
 				break;
 			default:
 				break;
