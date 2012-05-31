@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 
 import org.remoteandroid.RemoteAndroidInfo;
 import org.remoteandroid.RemoteAndroidManager;
+import static org.remoteandroid.RemoteAndroidManager.*;
 import org.remoteandroid.RemoteAndroidNfcHelper;
 import org.remoteandroid.apps.buzzer.charts.ChartMulti_ABC;
 import org.remoteandroid.apps.buzzer.charts.Chart_AB;
@@ -283,8 +284,7 @@ implements RemoteAndroidNfcHelper.OnNfcDiscover
 				{
 					intent.putExtra(RemoteAndroidManager.EXTRA_THEME_ID,android.R.style.Theme_Holo_Light_NoActionBar);
 				}
-//				intent.putExtra(RemoteAndroidManager.EXTRA_ACCEPT_ANONYMOUS, true);
-				intent.putExtra(RemoteAndroidManager.EXTRA_FLAGS,RemoteAndroidManager.FLAG_ACCEPT_ANONYMOUS);
+				intent.putExtra(RemoteAndroidManager.EXTRA_FLAGS,FLAG_PROPOSE_PAIRING|FLAG_ACCEPT_ANONYMOUS);
 		    	startActivityForResult(intent, REQUEST_CONNECT_CODE);
 		        return true;
 		    default:

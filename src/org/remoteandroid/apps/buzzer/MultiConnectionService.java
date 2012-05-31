@@ -85,9 +85,6 @@ public class MultiConnectionService extends Service
 
 	public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
 	{
-		if (!mDiscover)
-			return;
-
 		if (remoteAndroidInfo.getUris().length == 0)
 			return;
 		// If try a new connexion, and must pairing devices, the discover fire, but i must ignore it now. I will manage in the onResult.
