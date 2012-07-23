@@ -1,38 +1,34 @@
 package org.remoteandroid.apps.buzzer;
 
 
-import java.nio.charset.Charset;
+import static org.remoteandroid.RemoteAndroidManager.FLAG_ACCEPT_ANONYMOUS;
+import static org.remoteandroid.RemoteAndroidManager.FLAG_PROPOSE_PAIRING;
 
 import org.remoteandroid.RemoteAndroidInfo;
 import org.remoteandroid.RemoteAndroidManager;
-import static org.remoteandroid.RemoteAndroidManager.*;
-import org.remoteandroid.RemoteAndroidNfcHelper;
 import org.remoteandroid.apps.buzzer.charts.ChartMulti_ABC;
 import org.remoteandroid.apps.buzzer.charts.Chart_AB;
 import org.remoteandroid.apps.buzzer.charts.Chart_ABC;
 import org.remoteandroid.apps.buzzer.charts.Chart_ABCD;
 import org.remoteandroid.apps.buzzer.charts.Chart_YN;
 
-
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.NdefMessage;
-import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.CreateNdefMessageCallback;
 import android.nfc.NfcEvent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -46,11 +42,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class BuzzerActivity extends ListActivity
-implements RemoteAndroidNfcHelper.OnNfcDiscover
+implements CreateNdefMessageCallback
 {
-	protected RemoteAndroidNfcHelper 		mNfcIntegration;
-	protected CreateNdefMessageCallback mNfcCallBack;
-	
 	public static boolean		DEBUG			= true;
 	public static boolean		USE_NFC			= true;
 	public static boolean		USE_BUMP		= true;
@@ -77,17 +70,19 @@ implements RemoteAndroidNfcHelper.OnNfcDiscover
 
 	private TextView			mDevices;
 
-	private int					mTime;
+	private int				mTime;
 
-	private Handler				mHandler		= new Handler();
+	private final Handler		mHandler		= new Handler();
 
 	private CheckBox			mDiscover;
 	
+	private NfcAdapter			mNfcAdapter;
+	
 	@Override
+	@TargetApi(14)
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		mNfcIntegration=RemoteAndroidManager.newNfcIntegrationHelper(this);
 
 		Intent market = RemoteAndroidManager.getIntentForMarket(this);
 		if (market != null)
@@ -119,6 +114,12 @@ implements RemoteAndroidNfcHelper.OnNfcDiscover
 			size=MultiConnectionService.sMe.getSize();
 		mDevices.setText(" " + size);
 		startService(new Intent(MultiConnectionService.ACTION_CONNECT));
+		if (Build.VERSION.SDK_INT>Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+		{
+			mNfcAdapter=NfcAdapter.getDefaultAdapter(this);
+			mNfcAdapter=NfcAdapter.getDefaultAdapter(this);
+			mNfcAdapter.setNdefPushMessageCallback(this, this);
+		}
 	}
 
 	@Override
@@ -126,7 +127,6 @@ implements RemoteAndroidNfcHelper.OnNfcDiscover
 	{
 		// onResume gets called after this to handle the intent
 		setIntent(intent);
-		mNfcIntegration.onNewIntent(this, intent);
 	}
 	@Override
 	protected void onResume()
@@ -139,7 +139,6 @@ implements RemoteAndroidNfcHelper.OnNfcDiscover
 
 			showDialog(DIALOG_MARKET);
 		}
-		mNfcIntegration.onResume(this);
 	}
 
 	@Override
@@ -147,7 +146,6 @@ implements RemoteAndroidNfcHelper.OnNfcDiscover
 	{
 		super.onPause();
 		unregisterReceiver(mReceiver);
-		mNfcIntegration.onPause(this);
 	}
 	
 	@Override
@@ -297,7 +295,7 @@ implements RemoteAndroidNfcHelper.OnNfcDiscover
 	{
 		super.onUserLeaveHint(); // FIXME
 	}
-	private BroadcastReceiver	mReceiver	= new BroadcastReceiver()
+	private final BroadcastReceiver	mReceiver	= new BroadcastReceiver()
 	{
 		@Override
 		public void onReceive(Context context, Intent intent)
@@ -305,11 +303,12 @@ implements RemoteAndroidNfcHelper.OnNfcDiscover
 			mDevices.setText(" " + MultiConnectionService.sMe.getSize());
 		}
 	};
-
 	@Override
-	public void onNfcDiscover(RemoteAndroidInfo info)
+	@TargetApi(14)
+	public NdefMessage createNdefMessage(NfcEvent event)
 	{
-		startService(new Intent(MultiConnectionService.ACTION_ADD_DEVICE)
-			.putExtra(RemoteAndroidManager.EXTRA_DISCOVER, info));
+		startService(new Intent(MultiConnectionService.ACTION_START_DISCOVER));
+		return (MultiConnectionService.mManager!=null) ? MultiConnectionService.mManager.createNdefMessage() : null;
 	}
+
 }
