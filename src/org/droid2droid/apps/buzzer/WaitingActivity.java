@@ -1,4 +1,4 @@
-package org.remoteandroid.apps.buzzer;
+package org.droid2droid.apps.buzzer;
 
 import android.app.Activity;
 import android.os.Bundle;

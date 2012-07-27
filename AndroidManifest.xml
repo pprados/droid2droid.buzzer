@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.remoteandroid.apps.buzzer"
+    package="org.droid2droid.apps.buzzer"
     android:versionCode="1"
     android:versionName="1.0" >
 	<uses-sdk android:minSdkVersion="7" android:targetSdkVersion="15"/>
-    <permission
-        android:description="@string/permission_discover_desc"
-        android:label="@string/permission_discover_label"
-        android:name="org.remoteandroid.permission.DISCOVER"
-        android:permissionGroup="android.permission-group.NETWORK"
-        android:protectionLevel="normal" />
 
     <!-- For receive discover events -->
-    <uses-permission android:name="org.remoteandroid.permission.discover.RECEIVE" />
+    <uses-permission android:name="org.droid2droid.permission.discover.RECEIVE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -60,18 +54,18 @@
 
         <service android:name=".remote.RemoteVoteService" >
             <intent-filter >
-                <action android:name="org.remoteandroid.apps.buzzer.Vote" />
+                <action android:name="org.droid2droid.apps.buzzer.Vote" />
             </intent-filter>
         </service>
-        <service android:name="MultiConnectionService" >
+        <service android:name=".MultiConnectionService" >
             <intent-filter >
-                <action android:name="org.remoteandroid.apps.buzzer.START_DISCOVER" />
-                <action android:name="org.remoteandroid.apps.buzzer.STOP_DISCOVER" />
-                <action android:name="org.remoteandroid.apps.buzzer.ADD_DEVICE" />
-                <action android:name="org.remoteandroid.apps.buzzer.CONNECT" />
-                <action android:name="org.remoteandroid.apps.buzzer.VOTE" />
-                <action android:name="org.remoteandroid.apps.buzzer.QUIT" />
-                <action android:name="org.remoteandroid.apps.buzzer.NDEF_DISCOVER" />
+                <action android:name="org.droid2droid.apps.buzzer.START_DISCOVER" />
+                <action android:name="org.droid2droid.apps.buzzer.STOP_DISCOVER" />
+                <action android:name="org.droid2droid.apps.buzzer.ADD_DEVICE" />
+                <action android:name="org.droid2droid.apps.buzzer.CONNECT" />
+                <action android:name="org.droid2droid.apps.buzzer.VOTE" />
+                <action android:name="org.droid2droid.apps.buzzer.QUIT" />
+                <action android:name="org.droid2droid.apps.buzzer.NDEF_DISCOVER" />
             </intent-filter>
         </service>
     </application>

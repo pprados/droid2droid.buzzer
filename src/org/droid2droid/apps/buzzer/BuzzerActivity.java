@@ -1,16 +1,21 @@
-package org.remoteandroid.apps.buzzer;
+package org.droid2droid.apps.buzzer;
 
 
-import static org.remoteandroid.RemoteAndroidManager.FLAG_ACCEPT_ANONYMOUS;
-import static org.remoteandroid.RemoteAndroidManager.FLAG_PROPOSE_PAIRING;
+import static org.droid2droid.Droid2DroidManager.ACTION_CONNECT_ANDROID;
+import static org.droid2droid.Droid2DroidManager.EXTRA_DISCOVER;
+import static org.droid2droid.Droid2DroidManager.EXTRA_FLAGS;
+import static org.droid2droid.Droid2DroidManager.EXTRA_THEME_ID;
+import static org.droid2droid.Droid2DroidManager.EXTRA_UPDATE;
+import static org.droid2droid.Droid2DroidManager.FLAG_ACCEPT_ANONYMOUS;
+import static org.droid2droid.Droid2DroidManager.FLAG_PROPOSE_PAIRING;
 
-import org.remoteandroid.RemoteAndroidInfo;
-import org.remoteandroid.RemoteAndroidManager;
-import org.remoteandroid.apps.buzzer.charts.ChartMulti_ABC;
-import org.remoteandroid.apps.buzzer.charts.Chart_AB;
-import org.remoteandroid.apps.buzzer.charts.Chart_ABC;
-import org.remoteandroid.apps.buzzer.charts.Chart_ABCD;
-import org.remoteandroid.apps.buzzer.charts.Chart_YN;
+import org.droid2droid.Droid2DroidManager;
+import org.droid2droid.RemoteAndroidInfo;
+import org.droid2droid.apps.buzzer.charts.ChartMulti_ABC;
+import org.droid2droid.apps.buzzer.charts.Chart_AB;
+import org.droid2droid.apps.buzzer.charts.Chart_ABC;
+import org.droid2droid.apps.buzzer.charts.Chart_ABCD;
+import org.droid2droid.apps.buzzer.charts.Chart_YN;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -26,7 +31,8 @@ import android.nfc.NdefMessage;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.CreateNdefMessageCallback;
 import android.nfc.NfcEvent;
-import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Menu;
@@ -60,7 +66,7 @@ implements CreateNdefMessageCallback
 
 	public static final int		Multi_A_B_C_D	= 5;
 
-	public static final String	REGISTER		= "org.remoteandroid.apps.buzzer.REGISTER";
+	public static final String	REGISTER		= "org.droid2droid.apps.buzzer.REGISTER";
 
 	private static final int 	REQUEST_CONNECT_CODE=1;
 	
@@ -84,7 +90,7 @@ implements CreateNdefMessageCallback
 	{
 		super.onCreate(savedInstanceState);
 
-		Intent market = RemoteAndroidManager.getIntentForMarket(this);
+		Intent market = Droid2DroidManager.getIntentForMarket(this);
 		if (market != null)
 		{
 			finish();
@@ -114,7 +120,7 @@ implements CreateNdefMessageCallback
 			size=MultiConnectionService.sMe.getSize();
 		mDevices.setText(" " + size);
 		startService(new Intent(MultiConnectionService.ACTION_CONNECT));
-		if (Build.VERSION.SDK_INT>Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+		if (VERSION.SDK_INT>VERSION_CODES.ICE_CREAM_SANDWICH)
 		{
 			mNfcAdapter=NfcAdapter.getDefaultAdapter(this);
 			mNfcAdapter=NfcAdapter.getDefaultAdapter(this);
@@ -133,7 +139,7 @@ implements CreateNdefMessageCallback
 	{
 		super.onResume();
 		registerReceiver(mReceiver, new IntentFilter(REGISTER));
-		Intent market = RemoteAndroidManager.getIntentForMarket(this);
+		Intent market = Droid2DroidManager.getIntentForMarket(this);
 		if (market != null)
 		{
 
@@ -155,14 +161,14 @@ implements CreateNdefMessageCallback
 		{
 			case DIALOG_MARKET:
 				return new AlertDialog.Builder(this)
-						.setMessage("Install the application Remote Android ?") // TODO: NLS
+						.setMessage("Install the application Droid2Droid ?") // TODO: NLS
 						.setPositiveButton("Install", new DialogInterface.OnClickListener()
 						{
 
 							@Override
 							public void onClick(DialogInterface paramDialogInterface, int paramInt)
 							{
-								startActivity(RemoteAndroidManager
+								startActivity(Droid2DroidManager
 										.getIntentForMarket(BuzzerActivity.this));
 								finish();
 							}
@@ -198,10 +204,10 @@ implements CreateNdefMessageCallback
 	{
 		if (requestCode==REQUEST_CONNECT_CODE && resultCode==Activity.RESULT_OK)
 		{
-			RemoteAndroidInfo info=(RemoteAndroidInfo)data.getParcelableExtra(RemoteAndroidManager.EXTRA_DISCOVER);
+			RemoteAndroidInfo info=(RemoteAndroidInfo)data.getParcelableExtra(EXTRA_DISCOVER);
 			startService(new Intent(MultiConnectionService.ACTION_ADD_DEVICE)
-				.putExtra(RemoteAndroidManager.EXTRA_DISCOVER,info)
-				.putExtra(RemoteAndroidManager.EXTRA_UPDATE, data.getBooleanExtra(RemoteAndroidManager.EXTRA_UPDATE, false)));
+				.putExtra(EXTRA_DISCOVER,info)
+				.putExtra(EXTRA_UPDATE, data.getBooleanExtra(EXTRA_UPDATE, false)));
 		}
 	}
 	
@@ -273,16 +279,16 @@ implements CreateNdefMessageCallback
 	    switch (item.getItemId()) 
 	    {
 		    case R.id.add:
-				Intent intent=new Intent(RemoteAndroidManager.ACTION_CONNECT_ANDROID);
-				if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+				Intent intent=new Intent(ACTION_CONNECT_ANDROID);
+				if (VERSION.SDK_INT>=VERSION_CODES.ICE_CREAM_SANDWICH)
 				{
-					intent.putExtra(RemoteAndroidManager.EXTRA_THEME_ID,android.R.style.Theme_Holo_Light_DarkActionBar);
+					intent.putExtra(EXTRA_THEME_ID,android.R.style.Theme_Holo_Light_DarkActionBar);
 				}
 				else
 				{
-					intent.putExtra(RemoteAndroidManager.EXTRA_THEME_ID,android.R.style.Theme_Holo_Light_NoActionBar);
+					intent.putExtra(EXTRA_THEME_ID,android.R.style.Theme_Holo_Light_NoActionBar);
 				}
-				intent.putExtra(RemoteAndroidManager.EXTRA_FLAGS,FLAG_PROPOSE_PAIRING|FLAG_ACCEPT_ANONYMOUS);
+				intent.putExtra(EXTRA_FLAGS,FLAG_PROPOSE_PAIRING|FLAG_ACCEPT_ANONYMOUS);
 		    	startActivityForResult(intent, REQUEST_CONNECT_CODE);
 		        return true;
 		    default:

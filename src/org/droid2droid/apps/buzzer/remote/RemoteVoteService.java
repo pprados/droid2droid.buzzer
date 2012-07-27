@@ -1,4 +1,4 @@
-package org.remoteandroid.apps.buzzer.remote;
+package org.droid2droid.apps.buzzer.remote;
 
 import android.app.Service;
 import android.content.Intent;

@@ -1,11 +1,11 @@
-package org.remoteandroid.apps.buzzer.charts;
+package org.droid2droid.apps.buzzer.charts;
 
 import org.achartengine.chart.PieChart;
 import org.achartengine.model.CategorySeries;
 import org.achartengine.renderer.DefaultRenderer;
 import org.achartengine.renderer.SimpleSeriesRenderer;
-import org.remoteandroid.apps.buzzer.MultiConnectionService;
-import org.remoteandroid.apps.buzzer.R;
+import org.droid2droid.apps.buzzer.MultiConnectionService;
+import org.droid2droid.apps.buzzer.R;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -27,9 +27,9 @@ import android.widget.TextView;
 
 public abstract class AbstractChart extends Activity implements OnClickListener
 {
-	public static String			CHART_RESULTS	= "org.remoteandroid.apps.buzzer.Charts.Results";
+	public static String			CHART_RESULTS	= "org.droid2droid.apps.buzzer.Charts.Results";
 
-	public static final String		TAG				= "AbstractChart";
+	public static final String	TAG				= "AbstractChart";
 
 	protected TextView				mLabelVoteNumber, mLabelVoteRemain, mLabelVoteNull;
 
@@ -200,6 +200,7 @@ public abstract class AbstractChart extends Activity implements OnClickListener
 				mTimeBar.setProgress(values[0]);
 			}
 
+			@Override
 			protected void onPostExecute(Void result)
 			{
 				mGoBack.setEnabled(true);
@@ -231,7 +232,7 @@ public abstract class AbstractChart extends Activity implements OnClickListener
 
 	protected double arrondi(double A, int B)
 	{
-		return (double) ((int) (A * Math.pow(10, B) + .5)) / Math.pow(10, B);
+		return ((int) (A * Math.pow(10, B) + .5)) / Math.pow(10, B);
 	}
 
 	protected String pourcentage(double value, double total)
@@ -257,6 +258,7 @@ public abstract class AbstractChart extends Activity implements OnClickListener
 											}
 										};
 
+	@Override
 	protected void onStop()
 	{
 		super.onStop();

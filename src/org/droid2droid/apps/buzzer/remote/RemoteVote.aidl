@@ -1,4 +1,4 @@
-package org.remoteandroid.apps.buzzer.remote;
+package org.droid2droid.apps.buzzer.remote;
 interface RemoteVote 
 {
 	void exit();

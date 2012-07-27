@@ -1,9 +1,9 @@
-package org.remoteandroid.apps.buzzer.charts;
+package org.droid2droid.apps.buzzer.charts;
 
 import org.achartengine.GraphicalView;
 import org.achartengine.model.CategorySeries;
-import org.remoteandroid.apps.buzzer.R;
-import org.remoteandroid.apps.buzzer.choices.Choice_YN;
+import org.droid2droid.apps.buzzer.R;
+import org.droid2droid.apps.buzzer.choices.Choice_AB;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,31 +13,31 @@ import android.os.Parcelable;
 import android.view.View;
 import android.widget.LinearLayout;
 
-public class Chart_YN extends AbstractChart
+public class Chart_AB extends AbstractChart
 {
-
 	public static class ChartRetain extends Retain
 	{
-		private int	mVote_yes	= 0;
+		private int	mVote_a	= 0;
 
-		private int	mVote_no	= 0;
+		private int	mVote_b	= 0;
 
 		@Override
 		public void writeToParcel(Parcel dest, int flags)
 		{
 			super.writeToParcel(dest, flags);
-			dest.writeInt(mVote_yes);
-			dest.writeInt(mVote_no);
+			dest.writeInt(mVote_a);
+			dest.writeInt(mVote_b);
 		}
 
+		@Override
 		protected void readFromParcel(Parcel parcel)
 		{
 			super.readFromParcel(parcel);
-			mVote_yes = parcel.readInt();
-			mVote_no = parcel.readInt();
+			mVote_a = parcel.readInt();
+			mVote_b = parcel.readInt();
 		}
 
-		public static final Parcelable.Creator<ChartRetain>	CREATOR	= new Parcelable.Creator<ChartRetain>()
+		public static final Parcelable.Creator<ChartRetain>	CREATOR	= new Creator<ChartRetain>()
 																	{
 																		@Override
 																		public ChartRetain createFromParcel(
@@ -64,13 +64,14 @@ public class Chart_YN extends AbstractChart
 		super.onCreate(savedInstanceState);
 		final ChartRetain chartRetain = getRetain();
 		mMain = (LinearLayout) findViewById(R.id.main);
-		mSeries = new CategorySeries("Choice Yes or No Chart");
+		mSeries = new CategorySeries("Choice A or B Chart");
 		updateValues(chartRetain);
 		// Series
 		mChart = new GraphicalView(this, getChart());
 		mMain.addView(mChart);
 	}
 
+	@Override
 	protected void onReceive(Context context, Intent intent)
 	{
 		super.onReceive(context, intent);
@@ -79,11 +80,11 @@ public class Chart_YN extends AbstractChart
 		chartRetain.mVote_remain = intent.getIntExtra("pending", 0);
 		switch (result)
 		{
-			case Choice_YN.CHOICE_Y:
-				chartRetain.mVote_yes++;
+			case Choice_AB.CHOICE_A:
+				chartRetain.mVote_a++;
 				break;
-			case Choice_YN.CHOICE_N:
-				chartRetain.mVote_no++;
+			case Choice_AB.CHOICE_B:
+				chartRetain.mVote_b++;
 				break;
 			case -2:
 				break;
@@ -118,13 +119,11 @@ public class Chart_YN extends AbstractChart
 
 	private void updateValues(ChartRetain chartRetain)
 	{
-		int total = chartRetain.mVote_yes + chartRetain.mVote_no - chartRetain.mVote_null;
-		if (chartRetain.mVote_yes != 0)
-			mSeries.add("YES " + " " + pourcentage(chartRetain.mVote_yes, total),
-					chartRetain.mVote_yes);
-		if (chartRetain.mVote_no != 0)
-			mSeries.add("NO " + " " + pourcentage(chartRetain.mVote_no, total),
-					chartRetain.mVote_no);
+		int total = chartRetain.mVote_a + chartRetain.mVote_b - chartRetain.mVote_null;
+		if (chartRetain.mVote_a != 0)
+			mSeries.add("A " + " " + pourcentage(chartRetain.mVote_a, total), chartRetain.mVote_a);
+		if (chartRetain.mVote_b != 0)
+			mSeries.add("B " + " " + pourcentage(chartRetain.mVote_b, total), chartRetain.mVote_b);
 		mLabelVoteRemain.setText(String.valueOf(chartRetain.mVote_remain));
 		mLabelVoteNull.setText(String.valueOf(chartRetain.mVote_null));
 	}

@@ -1,7 +1,7 @@
-package org.remoteandroid.apps.buzzer.choices;
+package org.droid2droid.apps.buzzer.choices;
 
-import org.remoteandroid.apps.buzzer.R;
-import org.remoteandroid.apps.buzzer.remote.RemoteVoteImpl;
+import org.droid2droid.apps.buzzer.R;
+import org.droid2droid.apps.buzzer.remote.RemoteVoteImpl;
 
 import android.os.Bundle;
 import android.view.View;

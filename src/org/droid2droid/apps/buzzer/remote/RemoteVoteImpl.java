@@ -1,13 +1,13 @@
-package org.remoteandroid.apps.buzzer.remote;
+package org.droid2droid.apps.buzzer.remote;
 
-import org.remoteandroid.apps.buzzer.BuzzerActivity;
-import org.remoteandroid.apps.buzzer.WaitingActivity;
-import org.remoteandroid.apps.buzzer.choices.ChoiceMulti_ABC;
-import org.remoteandroid.apps.buzzer.choices.ChoiceMulti_ABCD;
-import org.remoteandroid.apps.buzzer.choices.Choice_AB;
-import org.remoteandroid.apps.buzzer.choices.Choice_ABC;
-import org.remoteandroid.apps.buzzer.choices.Choice_ABCD;
-import org.remoteandroid.apps.buzzer.choices.Choice_YN;
+import org.droid2droid.apps.buzzer.BuzzerActivity;
+import org.droid2droid.apps.buzzer.WaitingActivity;
+import org.droid2droid.apps.buzzer.choices.ChoiceMulti_ABC;
+import org.droid2droid.apps.buzzer.choices.ChoiceMulti_ABCD;
+import org.droid2droid.apps.buzzer.choices.Choice_AB;
+import org.droid2droid.apps.buzzer.choices.Choice_ABC;
+import org.droid2droid.apps.buzzer.choices.Choice_ABCD;
+import org.droid2droid.apps.buzzer.choices.Choice_YN;
 
 import android.content.Context;
 import android.content.Intent;
@@ -16,13 +16,13 @@ import android.os.RemoteException;
 
 public class RemoteVoteImpl extends RemoteVote.Stub
 {
-	private Context			mContext;
+	private final Context			mContext;
 
 	private static Object	sLock		= new Object();
 
 	private static int		sLastResult	= -1;
 
-	private Handler			mHandler	= new Handler();
+	private final Handler			mHandler	= new Handler();
 
 	public RemoteVoteImpl(Context context)
 	{

@@ -1,7 +1,7 @@
-package org.remoteandroid.apps.buzzer.choices;
+package org.droid2droid.apps.buzzer.choices;
 
-import org.remoteandroid.apps.buzzer.R;
-import org.remoteandroid.apps.buzzer.remote.RemoteVoteImpl;
+import org.droid2droid.apps.buzzer.R;
+import org.droid2droid.apps.buzzer.remote.RemoteVoteImpl;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -66,6 +66,7 @@ public abstract class AbstractChoice extends Activity
 				mTimeBar.setProgress(values[0]);
 			}
 
+			@Override
 			protected void onPostExecute(Void result)
 			{
 				RemoteVoteImpl.postResult(TIME_OUT);

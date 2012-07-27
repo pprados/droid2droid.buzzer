@@ -1,4 +1,10 @@
-package org.remoteandroid.apps.buzzer;
+package org.droid2droid.apps.buzzer;
+
+import static org.droid2droid.Droid2DroidManager.DISCOVER_INFINITELY;
+import static org.droid2droid.Droid2DroidManager.EXTRA_DISCOVER;
+import static org.droid2droid.Droid2DroidManager.EXTRA_UPDATE;
+import static org.droid2droid.Droid2DroidManager.FLAG_ACCEPT_ANONYMOUS;
+import static org.droid2droid.Droid2DroidManager.FLAG_PROPOSE_PAIRING;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,13 +15,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.remoteandroid.ListRemoteAndroidInfo;
-import org.remoteandroid.RemoteAndroid;
-import org.remoteandroid.RemoteAndroid.PublishListener;
-import org.remoteandroid.RemoteAndroidInfo;
-import org.remoteandroid.RemoteAndroidManager;
-import org.remoteandroid.apps.buzzer.charts.AbstractChart;
-import org.remoteandroid.apps.buzzer.remote.RemoteVote;
+import org.droid2droid.Droid2DroidManager;
+import org.droid2droid.ListRemoteAndroidInfo;
+import org.droid2droid.RemoteAndroid;
+import org.droid2droid.RemoteAndroid.PublishListener;
+import org.droid2droid.RemoteAndroidInfo;
+import org.droid2droid.apps.buzzer.charts.AbstractChart;
+import org.droid2droid.apps.buzzer.remote.RemoteVote;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -28,23 +34,22 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
-
 public class MultiConnectionService extends Service
 {
 	public static MultiConnectionService sMe;
 	public static final String TAG = "AbstractChart";
 
-	public static final String ACTION_START_DISCOVER = "org.remoteandroid.apps.buzzer.START_DISCOVER";
+	public static final String ACTION_START_DISCOVER = "org.droid2droid.apps.buzzer.START_DISCOVER";
 
-	public static final String ACTION_STOP_DISCOVER = "org.remoteandroid.apps.buzzer.STOP_DISCOVER";
+	public static final String ACTION_STOP_DISCOVER = "org.droid2droid.apps.buzzer.STOP_DISCOVER";
 	
-	public static final String ACTION_CONNECT = "org.remoteandroid.apps.buzzer.CONNECT";
+	public static final String ACTION_CONNECT = "org.droid2droid.apps.buzzer.CONNECT";
 
-	public static final String ACTION_ADD_DEVICE = "org.remoteandroid.apps.buzzer.ADD_DEVICE";
+	public static final String ACTION_ADD_DEVICE = "org.droid2droid.apps.buzzer.ADD_DEVICE";
 
-	public static final String ACTION_VOTE = "org.remoteandroid.apps.buzzer.VOTE";
+	public static final String ACTION_VOTE = "org.droid2droid.apps.buzzer.VOTE";
 
-	public static final String ACTION_QUIT = "org.remoteandroid.apps.buzzer.QUIT";
+	public static final String ACTION_QUIT = "org.droid2droid.apps.buzzer.QUIT";
 
 	private enum Mode {
 		CONNECT, VOTE, WAIT
@@ -53,7 +58,7 @@ public class MultiConnectionService extends Service
 	private Mode mState = Mode.CONNECT;
 
 	// FIXME: remove static
-	public static RemoteAndroidManager mManager;
+	public static Droid2DroidManager mManager;
 
 	public static Map<String, RemoteVote> sVotes = Collections.synchronizedMap(new HashMap<String, RemoteVote>());
 	public static List<RemoteAndroid> sRemoteAndroids=Collections.synchronizedList(new ArrayList<RemoteAndroid>());
@@ -133,7 +138,7 @@ Log.e(TAG,"Refuse start. mManager not initialized");
 		if (sMe!=null) return;
 		Log.d("service","Service onCreate");
 		sMe=this;
-		mAndroids=RemoteAndroidManager.newDiscoveredAndroid(this, new ListRemoteAndroidInfo.DiscoverListener()
+		mAndroids=Droid2DroidManager.newDiscoveredAndroid(this, new ListRemoteAndroidInfo.DiscoverListener()
 		{
 			@Override
 			public void onDiscover(final RemoteAndroidInfo remoteAndroidInfo, boolean replace)
@@ -151,17 +156,17 @@ Log.e(TAG,"Refuse start. mManager not initialized");
 			{
 			}
 		});
-		RemoteAndroidManager.bindManager(this, new RemoteAndroidManager.ManagerListener()
+		Droid2DroidManager.bindManager(this, new Droid2DroidManager.ManagerListener()
 		{
 			
 			@Override
-			public void unbind(RemoteAndroidManager manager)
+			public void unbind(Droid2DroidManager manager)
 			{
 				mManager=null;
 			}
 			
 			@Override
-			public void bind(RemoteAndroidManager manager)
+			public void bind(Droid2DroidManager manager)
 			{
 				mManager=manager;
 			}
@@ -272,7 +277,7 @@ Log.e(TAG,"Refuse start. mManager not initialized");
 		if (mManager!=null)
 		{
 			mDiscover=true;
-			mManager.startDiscover(RemoteAndroidManager.FLAG_ACCEPT_ANONYMOUS,RemoteAndroidManager.DISCOVER_INFINITELY);
+			mManager.startDiscover(FLAG_ACCEPT_ANONYMOUS,DISCOVER_INFINITELY);
 		}
 	}
 	private void stopDiscover()
@@ -285,8 +290,8 @@ Log.e(TAG,"Refuse start. mManager not initialized");
 	}
 	private void addDevice(Intent intent)
 	{
-		RemoteAndroidInfo remoteAndroidInfo=(RemoteAndroidInfo)intent.getParcelableExtra(RemoteAndroidManager.EXTRA_DISCOVER);
-		boolean replace=intent.getBooleanExtra(RemoteAndroidManager.EXTRA_UPDATE,false);
+		RemoteAndroidInfo remoteAndroidInfo=(RemoteAndroidInfo)intent.getParcelableExtra(EXTRA_DISCOVER);
+		boolean replace=intent.getBooleanExtra(EXTRA_UPDATE,false);
 		registerDevice(remoteAndroidInfo,replace);
 	}
 	public void registerDevice(RemoteAndroidInfo remoteAndroidInfo,boolean replace) // FIXME: use replace
@@ -412,7 +417,7 @@ Log.e(TAG,"Refuse start. mManager not initialized");
 									else if (status >= 0)
 									{
 										rA.bindService(
-											new Intent("org.remoteandroid.apps.buzzer.Vote"), new ServiceConnection()
+											new Intent("org.droid2droid.apps.buzzer.Vote"), new ServiceConnection()
 											{
 												RemoteVote vote;
 
@@ -477,7 +482,7 @@ Log.e(TAG,"Refuse start. mManager not initialized");
 						e.printStackTrace();
 					}
 				}
-			}, RemoteAndroidManager.FLAG_PROPOSE_PAIRING|RemoteAndroidManager.FLAG_ACCEPT_ANONYMOUS);
+			}, FLAG_PROPOSE_PAIRING|FLAG_ACCEPT_ANONYMOUS);
 		if (block)
 		{
 			synchronized (this)
